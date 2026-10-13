@@ -2,6 +2,12 @@
 
 Ứng dụng web một trang để nhân viên đăng khách mới (kèm ảnh), gửi báo cáo ngày, và để quản lý xem tổng hợp theo ngày/tháng.
 
+## Chức năng
+
+**Nhân viên:** Khách mới · Báo cáo ngày · Trang chủ (khách cả đội) · **Danh sách khách hàng** — khách của mình chia thành 6 bảng theo trạng thái (Mới, Phản hồi, Đang nói chuyện, Chơi giúp, Vào tiền, Chết). Đổi trạng thái trong bảng để chuyển khách sang bảng khác; bấm tên khách để sửa.
+
+**Quản lý:** Báo cáo ngày · Theo tháng · Từng nhân viên · Khách mới · **Danh sách khách hàng** — bảng tổng hợp số khách theo từng nhân viên × trạng thái (kèm tỉ lệ vào tiền), lọc theo nhân viên/tháng/từ khoá, và xem/đổi trạng thái khách của cả đội · Mã nhân viên.
+
 ## Cấu trúc
 
 | File | Vai trò |

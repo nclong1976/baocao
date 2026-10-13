@@ -162,6 +162,20 @@ th.c{border-bottom:2px solid var(--c)}
 .codechip button{border:0;background:var(--surface-2);border-radius:999px;min-width:26px;height:26px;cursor:pointer;color:var(--muted);padding:0 8px;font-size:12.5px}
 .empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:14px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:10px;font-size:14px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
+.stsum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.stsum .pill[aria-pressed="true"]{background:var(--c);color:var(--surface)}
+.sthead{display:flex;align-items:center;gap:8px;margin:18px 0 8px}
+.sthead i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.sthead small{color:var(--muted);font-weight:500;font-size:13px}
+.ctab{table-layout:fixed;min-width:100%}
+.ctab td{overflow:hidden;text-overflow:ellipsis}
+.ctab .nm{font-weight:600}
+.ctab button.nm{border:0;background:none;padding:0;cursor:pointer;color:var(--accent);text-align:left}
+.ctab select{width:auto;font-size:13.5px;padding:5px 8px;border-left:3px solid var(--c)}
+.ctab .rt{color:var(--c);font-weight:600}
+.feedbar.wrap{flex-wrap:wrap}
+.feedbar.wrap input[type=search]{flex:1 1 200px;width:auto}
+.feedbar.wrap select{width:auto}
 @media (max-width:560px){.form{grid-template-columns:1fr}.rrow{grid-template-columns:1fr 96px}}
 </style>
 </head>
@@ -188,6 +202,7 @@ th.c{border-bottom:2px solid var(--c)}
       <button role="tab" data-tab="moi" aria-selected="true">Khách mới</button>
       <button role="tab" data-tab="bc" aria-selected="false">Báo cáo ngày</button>
       <button role="tab" data-tab="home" aria-selected="false">Trang chủ</button>
+      <button role="tab" data-tab="ds" aria-selected="false">Danh sách khách hàng</button>
     </nav>
   </div></header>
 
@@ -234,6 +249,12 @@ th.c{border-bottom:2px solid var(--c)}
       <div class="feedbar"><input type="search" id="h-q" placeholder="Tìm tên, nghề, địa chỉ" aria-label="Tìm khách"><select id="h-nv" aria-label="Lọc theo nhân viên"></select></div>
       <div id="feed" class="feed"></div>
     </section>
+
+    <section id="tab-ds" role="tabpanel" hidden>
+      <div class="head"><h1>Danh sách khách hàng</h1><p class="sub" id="dsSub">Khách bạn đã đăng, chia theo trạng thái. Đổi trạng thái để chuyển khách sang bảng khác.</p></div>
+      <div class="feedbar wrap"><input type="search" id="ds-q" placeholder="Tìm tên, nghề, địa chỉ, ghi chú" aria-label="Tìm khách"></div>
+      <div id="ds-body"></div>
+    </section>
   </main>
 </div>
 <div id="admin" class="admin" hidden>
@@ -247,6 +268,7 @@ th.c{border-bottom:2px solid var(--c)}
       <button role="tab" data-atab="month" aria-selected="false">Theo tháng</button>
       <button role="tab" data-atab="staff" aria-selected="false">Từng nhân viên</button>
       <button role="tab" data-atab="cust" aria-selected="false">Khách mới</button>
+      <button role="tab" data-atab="list" aria-selected="false">Danh sách khách hàng</button>
       <button role="tab" data-atab="codes" aria-selected="false">Mã nhân viên</button>
     </nav>
   </div></header>
@@ -270,6 +292,13 @@ th.c{border-bottom:2px solid var(--c)}
       <div class="head"><h1>Khách mới của cả đội</h1><p class="sub" id="aCustSub"></p></div>
       <div class="feedbar" style="flex-wrap:wrap"><input type="search" id="a-q" placeholder="Tìm tên, nghề, địa chỉ" aria-label="Tìm khách" style="flex:1 1 220px;width:auto"><select id="a-nv" aria-label="Lọc theo nhân viên"></select><input type="date" id="a-cday" aria-label="Lọc theo ngày đăng" style="width:auto"></div>
       <div id="a-feed" class="feed"></div>
+    </section>
+    <section id="a-list" role="tabpanel" hidden>
+      <div class="head"><h1>Danh sách khách hàng</h1><p class="sub" id="aListSub"></p></div>
+      <div class="feedbar wrap"><input type="search" id="al-q" placeholder="Tìm tên, nghề, địa chỉ, ghi chú" aria-label="Tìm khách"><select id="al-nv" aria-label="Lọc theo nhân viên"></select><select id="al-m" aria-label="Lọc theo tháng đăng"></select></div>
+      <h2 style="margin:4px 0 8px">Theo nhân viên</h2>
+      <div id="al-matrix"></div>
+      <div id="al-body"></div>
     </section>
     <section id="a-codes" role="tabpanel" hidden>
       <div class="head"><h1>Mã nhân viên</h1><p class="sub">Chỉ những mã trong danh sách này mới đăng nhập được vào trang báo cáo.</p></div>
@@ -373,8 +402,8 @@ function logout(){
 function switchTab(t){
   UI.tab=t;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
-  ['moi','bc','home'].forEach(k=>$('#tab-'+k).hidden=k!==t);
-  window.scrollTo(0,0);
+  ['moi','bc','home','ds'].forEach(k=>$('#tab-'+k).hidden=k!==t);
+  window.scrollTo(0,0); if(t==='ds')renderDS();
 }
 
 /* ---------- Chip chọn một ---------- */
@@ -420,7 +449,7 @@ async function saveCust(){
   }
   btn.textContent=label;
   const now=Date.now();
-  const obj={photos:UI.photos.map(p=>p.ref),code:UI.code,name,birth,job:v('job'),addr:v('addr'),marital:getChip('marital'),kids:v('kids'),rating:getChip('rating'),note:v('note'),
+  const obj={photos:UI.photos.map(p=>p.ref),code:UI.code,name,birth,job:v('job'),addr:v('addr'),marital:getChip('marital'),kids:v('kids'),rating:getChip('rating'),note:v('note'),status:editing?editing.status||'moi':'moi',statusAt:editing?editing.statusAt||editing.createdAt:now,
     createdAt:editing?editing.createdAt:now,day:editing?editing.day:dayKey(now),updatedAt:now};
   const gone=UI.removed.slice();
   try{await put('customers',editing?editing.id:newId(),obj);toast(editing?'Đã lưu thay đổi':'Đã đăng '+name+' lên trang chủ');resetCust();dropAssets(gone)}
@@ -576,13 +605,50 @@ function renderHist(){
   $('#rHist').innerHTML=mine.length?mine.map(r=>`<button data-day="${r.date}"><b class="${r.date===d?'on':''}">Ngày ${dm(r.date)}</b><span>Cào ${r.scraped}, vào tiền ${r.vaoTien}, còn lại ${r.conLai}</span></button>`).join(''):'<div class="empty">Chưa có báo cáo nào được lưu.</div>';
 }
 
+/* ---------- Danh sách khách hàng (bảng theo trạng thái) ---------- */
+const CST=[['moi','Mới'],['phan_hoi','Phản hồi'],['dang_noi','Đang nói chuyện'],['choi_giup','Chơi giúp'],['vao_tien','Vào tiền'],['chet','Chết']];
+const stOf=c=>CST.some(s=>s[0]===c.status)?c.status:'moi';
+const cMatch=(c,q)=>!q||norm([c.name,c.job,c.addr,c.note,c.birth,c.kids].join(' ')).includes(q);
+const DSF={ds:'',al:''};
+function custTables(rows,adm,key){
+  const by={}; CST.forEach(([k])=>by[k]=[]); rows.forEach(c=>by[stOf(c)].push(c));
+  const f=DSF[key];
+  const sum=`<div class="stsum"><button type="button" class="pill" data-stf="${key}:" aria-pressed="${!f}" style="--c:var(--accent)">Tất cả ${rows.length}</button>`+
+    CST.map(([k,l])=>`<button type="button" class="pill" data-stf="${key}:${k}" aria-pressed="${f===k}" style="--c:var(--s-${k})">${l} ${by[k].length}</button>`).join('')+'</div>';
+  const W=[52,170].concat(adm?[72]:[],[168,124,84,140,170,100,120,220,112]);
+  const head=`<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th>STT</th><th>Tên</th>${adm?'<th>NV</th>':''}<th>Trạng thái</th><th>Đánh giá</th><th>Năm sinh</th><th>Nghề nghiệp</th><th>Địa chỉ</th><th>Hôn nhân</th><th>Con cái</th><th>Ghi chú</th><th>Ngày đăng</th></tr></thead>`;
+  const row=(c,i)=>{
+    const st=stOf(c), r=RATING[c.rating], can=adm||c.code===UI.code;
+    const nm=!adm&&c.code===UI.code?`<button type="button" class="nm" data-edit="${c.id}" title="Sửa thông tin">${esc(c.name)}</button>`:`<span class="nm">${esc(c.name)}</span>`;
+    const sel=can?`<select data-st="${c.id}" aria-label="Trạng thái của ${esc(c.name)}" style="--c:var(--s-${st})">${CST.map(([k,l])=>`<option value="${k}" ${k===st?'selected':''}>${l}</option>`).join('')}</select>`:esc(CST.find(s=>s[0]===st)[1]);
+    return `<tr><td class="num">${i+1}</td><td>${nm}</td>${adm?`<td>NV ${esc(c.code)}</td>`:''}<td>${sel}</td><td>${r?`<span class="rt" style="--c:var(${r[1]})">${r[0]}</span>`:''}</td><td>${esc(c.birth||'')}</td><td class="clip" title="${esc(c.job)}">${esc(c.job||'')}</td><td class="clip" title="${esc(c.addr)}">${esc(c.addr||'')}</td><td>${esc(c.marital||'')}</td><td class="clip" title="${esc(c.kids)}">${esc(c.kids||'')}</td><td class="clip" title="${esc(c.note)}">${esc(c.note||'')}</td><td>${c.createdAt?fmtT(c.createdAt):''}</td></tr>`;
+  };
+  const tables=CST.filter(([k])=>!f||f===k).map(([k,l])=>`<div class="sthead" style="--c:var(--s-${k})"><i></i><h2>${l}</h2><small>${by[k].length} khách</small></div>`+
+    (by[k].length?`<div class="tw"><table class="ctab" style="width:${W.reduce((a,b)=>a+b,0)}px">${head}<tbody>${by[k].map(row).join('')}</tbody></table></div>`:'<div class="empty" style="padding:12px">Chưa có khách trong bảng này.</div>')).join('');
+  return sum+tables;
+}
+function renderDS(){
+  if(!UI.code)return;
+  const q=norm($('#ds-q').value), mine=S.customers.filter(c=>c.code===UI.code);
+  const rows=mine.filter(c=>cMatch(c,q));
+  $('#dsSub').textContent=`Bạn có ${mine.length} khách`+(rows.length!==mine.length?`, đang hiện ${rows.length}`:'')+'. Đổi trạng thái để chuyển khách sang bảng khác.';
+  $('#ds-body').innerHTML=mine.length?custTables(rows,false,'ds'):'<div class="empty">Bạn chưa đăng khách nào. Thêm khách ở mục Khách mới.</div>';
+}
+async function setStatus(id,st,el){
+  const c=S.customers.find(x=>x.id===id); if(!c||(!UI.admin&&c.code!==UI.code)||stOf(c)===st)return;
+  const {id:_,...obj}=c; obj.status=st; obj.statusAt=Date.now();
+  el.disabled=true;
+  try{await put('customers',id,obj);c.status=st;c.statusAt=obj.statusAt;toast(`Đã chuyển ${c.name} sang “${CST.find(s=>s[0]===st)[1]}”`);refresh()}
+  catch(e){toast(errMsg(e));el.value=stOf(c)}finally{el.disabled=false}
+}
+
 /* ---------- Đồng bộ giao diện ---------- */
 function refresh(){
   const m={loading:['Đang kết nối…','var(--muted)'],cloud:['Dữ liệu dùng chung với cả đội','var(--s-vao_tien)'],local:['Đang lưu tạm trên máy này, cả đội chưa xem được','var(--warn)'],error:['Mất kết nối dữ liệu. Tải lại trang để tiếp tục','var(--s-chet)']}[S.mode];
   document.querySelectorAll('.sync').forEach(s=>{s.style.setProperty('--c',m[1]);s.querySelector('span').textContent=m[0]});
   if(UI.admin){renderAdmin();return}
   if(!UI.code)return;
-  renderMyToday(); renderFeed(); renderHist(); fillReport(false);
+  renderMyToday(); renderFeed(); renderHist(); fillReport(false); if(UI.tab==='ds')renderDS();
 }
 
 
@@ -614,7 +680,7 @@ const monthReports=m=>S.db?(aSubMonth===m?S.aReports:[]):S.reports.filter(r=>r.d
 
 function staffOptions(){
   $('#h-nv').innerHTML='<option value="">Mọi nhân viên</option>'+CODES.map(c=>`<option value="${esc(c)}">NV ${esc(c)}</option>`).join('');
-  const a=$('#a-nv'); if(a){const v=a.value;a.innerHTML='<option value="">Mọi nhân viên</option>'+CODES.map(c=>`<option value="${esc(c)}" ${c===v?'selected':''}>NV ${esc(c)}</option>`).join('')}
+  ['#a-nv','#al-nv'].forEach(id=>{const a=$(id); if(a){const v=a.value;a.innerHTML='<option value="">Mọi nhân viên</option>'+CODES.map(c=>`<option value="${esc(c)}" ${c===v?'selected':''}>NV ${esc(c)}</option>`).join('')}});
 }
 function monthOptions(){
   const now=new Date(), opts=[];
@@ -638,11 +704,27 @@ function adminLogout(){
 function aTab(t){
   A.tab=t;
   document.querySelectorAll('[data-atab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.atab===t)));
-  ['day','month','staff','cust','codes'].forEach(k=>$('#a-'+k).hidden=k!==t);
+  ['day','month','staff','cust','list','codes'].forEach(k=>$('#a-'+k).hidden=k!==t);
   window.scrollTo(0,0); renderAdmin();
 }
+function renderAList(){
+  const q=norm($('#al-q').value), nv=$('#al-nv').value, ms=$('#al-m');
+  const months=[...new Set(S.customers.map(c=>c.day&&c.day.slice(0,7)).filter(Boolean))].sort().reverse();
+  const mv=ms.value; ms.innerHTML='<option value="">Mọi tháng</option>'+months.map(m=>`<option value="${m}" ${m===mv?'selected':''}>${monthLabel(m)}</option>`).join('');
+  const m=ms.value;
+  const inM=S.customers.filter(c=>!m||(c.day&&c.day.slice(0,7)===m));
+  const rows=inM.filter(c=>(!nv||c.code===nv)&&cMatch(c,q));
+  $('#aListSub').textContent=`${S.customers.length} khách của cả đội`+(rows.length!==S.customers.length?`, đang hiện ${rows.length}`:'');
+  const staff=[...new Set(CODES.concat(inM.map(c=>c.code)))];
+  const cnt=(code,k)=>inM.filter(c=>c.code===code&&(!k||stOf(c)===k)).length;
+  const tot=CST.map(([k])=>inM.filter(c=>stOf(c)===k).length);
+  $('#al-matrix').innerHTML=`<div class="tw"><table><thead><tr><th>Nhân viên</th>${CST.map(([k,l])=>`<th class="num c" style="--c:var(--s-${k})">${l}</th>`).join('')}<th class="num">Tổng</th><th class="num">Tỉ lệ vào tiền</th></tr></thead><tbody>`+
+    staff.map(code=>{const t=cnt(code);return `<tr class="click" data-alnv="${esc(code)}"><td><b>NV ${esc(code)}</b>${code===nv?' ✓':''}</td>${CST.map(([k])=>`<td class="num">${nf(cnt(code,k))}</td>`).join('')}<td class="num"><b>${nf(t)}</b></td><td class="num">${t?pct(cnt(code,'vao_tien')/t):'—'}</td></tr>`}).join('')+
+    `</tbody><tfoot><tr><td>Cả đội</td>${tot.map(n=>`<td class="num">${nf(n)}</td>`).join('')}<td class="num">${nf(inM.length)}</td><td class="num">${inM.length?pct(tot[4]/inM.length):'—'}</td></tr></tfoot></table></div>`;
+  $('#al-body').innerHTML=rows.length?custTables(rows,true,'al'):'<div class="empty">Không có khách khớp bộ lọc.</div>';
+}
 function renderAdmin(){
-  ({day:renderADay,month:renderAMonth,staff:renderAStaff,cust:renderACust,codes:renderCodes})[A.tab]();
+  ({day:renderADay,month:renderAMonth,staff:renderAStaff,cust:renderACust,list:renderAList,codes:renderCodes})[A.tab]();
 }
 
 function lineChart(labels,a,b){
@@ -786,10 +868,17 @@ $('#aCopy').addEventListener('click',async()=>toast(await copyText(dayText())?'�
 $('#a-q').addEventListener('input',renderACust);
 $('#a-nv').addEventListener('change',renderACust);
 $('#a-cday').addEventListener('change',renderACust);
+$('#al-q').addEventListener('input',renderAList);
+$('#al-nv').addEventListener('change',renderAList);
+$('#al-m').addEventListener('change',renderAList);
+$('#ds-q').addEventListener('input',renderDS);
+document.addEventListener('change',e=>{const s=e.target.closest('select[data-st]');if(s)setStatus(s.dataset.st,s.value,s)});
 $('#addCode').addEventListener('click',addCode);
 $('#newCode').addEventListener('keydown',e=>{if(e.key==='Enter')addCode()});
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-atab]'); if(t){aTab(t.dataset.atab);return}
+  const sf=e.target.closest('[data-stf]'); if(sf){const [k,v]=sf.dataset.stf.split(':');DSF[k]=v;k==='ds'?renderDS():renderAList();return}
+  const an=e.target.closest('[data-alnv]'); if(an){const s=$('#al-nv');s.value=s.value===an.dataset.alnv?'':an.dataset.alnv;renderAList();return}
   const g=e.target.closest('[data-gostaff]'); if(g){A.staff=g.dataset.gostaff;aTab('staff');return}
   const p=e.target.closest('[data-pickstaff]'); if(p){A.staff=p.dataset.pickstaff;renderAStaff();return}
   const r=e.target.closest('[data-rmcode]'); if(r){rmCode(r.dataset.rmcode)}
