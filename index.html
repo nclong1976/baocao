@@ -11,19 +11,22 @@
 :root{
   --bg:#F3F5F8;--surface:#FFFFFF;--surface-2:#F8F9FB;--ink:#152132;--muted:#5C697B;--line:#E1E6ED;
   --side:#14273D;--accent:#1F4E8C;--accent-ink:#fff;--warn:#B4610A;
+  --sh-head:#6D9EEB;--sh-head-ink:#0B1A2E;--sh-band:#E8F0FE;--sh-line:#CFD8E6;--sh-focus:#1A73E8;--sh-pick:#ECEEF1;
   --s-moi:#7B8799;--s-phan_hoi:#2C7BE5;--s-dang_noi:#D8900C;--s-choi_giup:#8656CC;--s-vao_tien:#0E8E65;--s-chet:#C1443C;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --bg:#0E1621;--surface:#16202D;--surface-2:#1B2735;--ink:#E5EBF3;--muted:#92A0B3;--line:#273549;
     --side:#0A121C;--accent:#5B92E6;--accent-ink:#0A121C;--warn:#F0AD3A;
+    --sh-head:#2D4F86;--sh-head-ink:#EAF1FF;--sh-band:#182638;--sh-line:#2C3B51;--sh-focus:#7FB0FF;--sh-pick:#243246;
     --s-moi:#95A1B3;--s-phan_hoi:#5E9DF0;--s-dang_noi:#F0AD3A;--s-choi_giup:#A783E6;--s-vao_tien:#33BF8D;--s-chet:#E46A61;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0E1621;--surface:#16202D;--surface-2:#1B2735;--ink:#E5EBF3;--muted:#92A0B3;--line:#273549;
   --side:#0A121C;--accent:#5B92E6;--accent-ink:#0A121C;--warn:#F0AD3A;
-  --s-moi:#95A1B3;--s-phan_hoi:#5E9DF0;--s-dang_noi:#F0AD3A;--s-choi_giup:#A783E6;--s-vao_tien:#33BF8D;--s-chet:#E46A61;
+  --sh-head:#2D4F86;--sh-head-ink:#EAF1FF;--sh-band:#182638;--sh-line:#2C3B51;--sh-focus:#7FB0FF;--sh-pick:#243246;
+    --s-moi:#95A1B3;--s-phan_hoi:#5E9DF0;--s-dang_noi:#F0AD3A;--s-choi_giup:#A783E6;--s-vao_tien:#33BF8D;--s-chet:#E46A61;
 }
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 110px)}
@@ -128,6 +131,8 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 72px}
 .lb img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
 .lb .x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:22px;cursor:pointer}
 .admin .topin,.admin main{max-width:1140px}
+#app.wide main{max-width:1800px}
+.admin main:has(#a-list:not([hidden])){max-width:1800px}
 .ctrlrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ctrlrow input,.ctrlrow select,.head select{width:auto}
 .kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
@@ -162,17 +167,41 @@ th.c{border-bottom:2px solid var(--c)}
 .codechip button{border:0;background:var(--surface-2);border-radius:999px;min-width:26px;height:26px;cursor:pointer;color:var(--muted);padding:0 8px;font-size:12.5px}
 .empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:14px}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:10px;font-size:14px;z-index:40;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
-.stsum{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-.stsum .pill[aria-pressed="true"]{background:var(--c);color:var(--surface)}
-.sthead{display:flex;align-items:center;gap:8px;margin:18px 0 8px}
-.sthead i{width:10px;height:10px;border-radius:50%;background:var(--c)}
-.sthead small{color:var(--muted);font-weight:500;font-size:13px}
-.ctab{table-layout:fixed;min-width:100%}
-.ctab td{overflow:hidden;text-overflow:ellipsis}
-.ctab .nm{font-weight:600}
-.ctab button.nm{border:0;background:none;padding:0;cursor:pointer;color:var(--accent);text-align:left}
-.ctab select{width:auto;font-size:13.5px;padding:5px 8px;border-left:3px solid var(--c)}
-.ctab .rt{color:var(--c);font-weight:600}
+.sheetbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.sheetbar input[type=search]{flex:1 1 200px;width:auto}
+.sheetbar select{width:auto}
+.sheetbar .hint{font-size:12.5px;color:var(--muted);flex-basis:100%}
+.sw{overflow:auto;max-height:calc(100vh - 230px);border:1px solid var(--sh-line);border-radius:10px;background:var(--surface);margin-bottom:14px}
+.sheet{min-width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:14px}
+.sheet th{position:sticky;top:0;z-index:3;background:var(--sh-head);color:var(--sh-head-ink);font-weight:700;font-size:13.5px;text-align:center;padding:7px 8px;border-right:1px solid var(--sh-line);border-bottom:2px solid var(--sh-line);white-space:nowrap}
+.sheet td{padding:0;border-right:1px solid var(--sh-line);border-bottom:1px solid var(--sh-line);height:36px;background:inherit;white-space:nowrap}
+.sheet th:first-child{z-index:4;left:0}
+.sheet td:first-child{position:sticky;left:0;z-index:2;text-align:center;color:var(--muted);font-size:13px}
+.sheet tbody tr{background:var(--surface)}
+.sheet tbody tr:nth-child(even){background:var(--sh-band)}
+.sheet tbody tr.blank td:first-child{color:transparent}
+.sheet input{border:0;border-radius:0;background:transparent;padding:6px 8px;height:35px;font-size:14px;width:100%}
+.sheet input:focus{outline:2px solid var(--sh-focus);outline-offset:-2px;background:var(--surface)}
+.sheet input.money{text-align:right}
+.sheet input[type=date]{font-size:13.5px}
+.sheet input[type=date]:invalid:not(:focus){color:transparent}
+.sheet input[type=date]::-webkit-calendar-picker-indicator{opacity:.45}
+.sheet tfoot td:first-child{text-align:left;color:var(--sh-head-ink);font-size:14px}
+.sheet .nvc{padding:0 8px;font-weight:600;font-size:13px}
+.sheet tfoot td{position:sticky;bottom:0;z-index:2;background:var(--sh-head);color:var(--sh-head-ink);font-weight:700;padding:7px 8px;border-top:2px solid var(--sh-line)}
+.pick{display:flex;align-items:center;gap:6px;width:calc(100% - 10px);margin:0 5px;height:26px;border:0;border-radius:13px;background:var(--sh-pick);padding:0 8px 0 4px;cursor:pointer;font-size:13px;text-align:left}
+.pick:focus-visible{outline:2px solid var(--sh-focus)}
+.pick::after{content:"";margin-left:auto;border:4.5px solid transparent;border-top:5.5px solid currentColor;border-bottom:0;opacity:.85}
+.pick .tg{max-width:calc(100% - 14px)}
+.tg{display:inline-block;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:500;line-height:1.45;background:var(--tb,#E6E6E6);color:var(--tf,#2B2B2B);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rmrow{border:0;background:none;color:var(--muted);cursor:pointer;width:100%;height:35px;font-size:16px}
+.rmrow.arm{color:var(--s-chet);font-size:12px;font-weight:600}
+.menu{position:fixed;z-index:60;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;min-width:220px;max-height:340px;overflow:auto}
+.menu button{display:block;width:100%;border:0;background:none;text-align:left;padding:5px 6px;border-radius:7px;cursor:pointer}
+.menu button:hover,.menu button:focus{background:var(--surface-2);outline:none}
+.menu button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.menu .clr{color:var(--muted);font-size:13px;border-top:1px solid var(--line);border-radius:0 0 7px 7px;margin-top:4px;padding-top:8px}
+.menu input{margin:0 0 6px;font-size:14px;padding:6px 9px}
 .feedbar.wrap{flex-wrap:wrap}
 .feedbar.wrap input[type=search]{flex:1 1 200px;width:auto}
 .feedbar.wrap select{width:auto}
@@ -251,8 +280,9 @@ th.c{border-bottom:2px solid var(--c)}
     </section>
 
     <section id="tab-ds" role="tabpanel" hidden>
-      <div class="head"><h1>Danh sách khách hàng</h1><p class="sub" id="dsSub">Khách bạn đã đăng, chia theo trạng thái. Đổi trạng thái để chuyển khách sang bảng khác.</p></div>
-      <div class="feedbar wrap"><input type="search" id="ds-q" placeholder="Tìm tên, nghề, địa chỉ, ghi chú" aria-label="Tìm khách"></div>
+      <div class="head"><h1>Danh sách khách hàng</h1><p class="sub" id="dsSub">Gõ thẳng vào ô để nhập. Dữ liệu tự lưu khi chuyển sang ô khác.</p></div>
+      <div class="sheetbar"><input type="search" id="ds-q" placeholder="Tìm tên, nghề, nơi ở, ghi chú" aria-label="Tìm khách"><select id="ds-st" aria-label="Lọc theo tình trạng"></select>
+        <span class="hint">Mẹo: ở cột Tình trạng bấm phím 1–7, ở cột Xếp hạng bấm A–D để chọn nhanh.</span></div>
       <div id="ds-body"></div>
     </section>
   </main>
@@ -295,9 +325,9 @@ th.c{border-bottom:2px solid var(--c)}
     </section>
     <section id="a-list" role="tabpanel" hidden>
       <div class="head"><h1>Danh sách khách hàng</h1><p class="sub" id="aListSub"></p></div>
-      <div class="feedbar wrap"><input type="search" id="al-q" placeholder="Tìm tên, nghề, địa chỉ, ghi chú" aria-label="Tìm khách"><select id="al-nv" aria-label="Lọc theo nhân viên"></select><select id="al-m" aria-label="Lọc theo tháng đăng"></select></div>
       <h2 style="margin:4px 0 8px">Theo nhân viên</h2>
       <div id="al-matrix"></div>
+      <div class="sheetbar"><input type="search" id="al-q" placeholder="Tìm tên, nghề, nơi ở, ghi chú" aria-label="Tìm khách"><select id="al-nv" aria-label="Lọc theo nhân viên"></select><select id="al-st" aria-label="Lọc theo tình trạng"></select></div>
       <div id="al-body"></div>
     </section>
     <section id="a-codes" role="tabpanel" hidden>
@@ -307,6 +337,7 @@ th.c{border-bottom:2px solid var(--c)}
     </section>
   </main>
 </div>
+<div class="menu" id="menu" role="listbox" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="lb" id="lb" role="dialog" aria-label="Xem ảnh" hidden><img id="lbImg" alt="Ảnh khách hàng"><button class="x" aria-label="Đóng ảnh">×</button></div>
 
@@ -324,7 +355,7 @@ const R_FIELDS=[
   ['dangNoi','Khách đang nói chuyện','dang_noi'],['choiGiup','Khách chơi giúp','choi_giup'],['vaoTien','Khách vào tiền','vao_tien'],
   ['chet','Khách chết','chet'],['tongData','Tổng data nhận'],['conLai','Số lượng còn lại'],['tinhTrang','Tình trạng data','',true],
   ['tongThang','Tổng khách trong tháng']];
-const S={mode:'loading',db:null,assets:null,isAdmin:false,customers:[],reports:[],aReports:[]};
+const S={mode:'loading',db:null,assets:null,isAdmin:false,customers:[],reports:[],aReports:[],sheet:[]};
 const UI={admin:false,code:null,tab:'moi',editing:null,dupKey:null,rDirty:false,delArm:null,photos:[],removed:[]};
 const MAXPH=6;
 const imgSrc=r=>/^(data:|https?:)/.test(String(r))?r:'/_blob/'+r;
@@ -341,8 +372,8 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 let tt; function toast(s){const t=$('#toast');t.textContent=s;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,2800)}
 
 /* ---------- Lưu trữ: chung cả đội (db) hoặc tạm trên máy ---------- */
-function localLoad(){try{const x=JSON.parse(localStorage.getItem(LKEY)||'{}');S.customers=x.customers||[];S.reports=x.reports||[]}catch(e){}}
-function localSave(){try{localStorage.setItem(LKEY,JSON.stringify({customers:S.customers,reports:S.reports}))}catch(e){}}
+function localLoad(){try{const x=JSON.parse(localStorage.getItem(LKEY)||'{}');S.customers=x.customers||[];S.reports=x.reports||[];S.sheet=x.sheet||[]}catch(e){}}
+function localSave(){try{localStorage.setItem(LKEY,JSON.stringify({customers:S.customers,reports:S.reports,sheet:S.sheet}))}catch(e){}}
 async function put(col,id,obj){
   if(S.db){
     const ref=S.db.collection(col).doc(id);
@@ -371,6 +402,7 @@ async function initStore(){
     const fail=()=>{S.mode='error';refresh()};
     db.collection('customers').orderBy('createdAt','desc').limit(1000).onSnapshot(s=>{S.customers=s.docs.map(d=>({id:d.id,...d.data()}));refresh()},fail);
     db.collection('reports').orderBy('updatedAt','desc').limit(1000).onSnapshot(s=>{S.reports=s.docs.map(d=>({id:d.id,...d.data()}));refresh()},fail);
+    db.collection('sheet').orderBy('createdAt','asc').limit(5000).onSnapshot(s=>{S.sheet=s.docs.map(d=>({id:d.id,...d.data()}));refresh()},fail);
     db.doc('settings/staff').onSnapshot(s=>{const c=s.exists&&s.data().codes;if(Array.isArray(c)&&c.length){CODES=c.map(String);staffOptions();refresh()}},()=>{});
   }else{
     S.mode='local';localLoad();if(!us)S.isAdmin=true;
@@ -403,6 +435,7 @@ function switchTab(t){
   UI.tab=t;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
   ['moi','bc','home','ds'].forEach(k=>$('#tab-'+k).hidden=k!==t);
+  $('#app').classList.toggle('wide',t==='ds');
   window.scrollTo(0,0); if(t==='ds')renderDS();
 }
 
@@ -449,7 +482,7 @@ async function saveCust(){
   }
   btn.textContent=label;
   const now=Date.now();
-  const obj={photos:UI.photos.map(p=>p.ref),code:UI.code,name,birth,job:v('job'),addr:v('addr'),marital:getChip('marital'),kids:v('kids'),rating:getChip('rating'),note:v('note'),status:editing?editing.status||'moi':'moi',statusAt:editing?editing.statusAt||editing.createdAt:now,
+  const obj={photos:UI.photos.map(p=>p.ref),code:UI.code,name,birth,job:v('job'),addr:v('addr'),marital:getChip('marital'),kids:v('kids'),rating:getChip('rating'),note:v('note'),
     createdAt:editing?editing.createdAt:now,day:editing?editing.day:dayKey(now),updatedAt:now};
   const gone=UI.removed.slice();
   try{await put('customers',editing?editing.id:newId(),obj);toast(editing?'Đã lưu thay đổi':'Đã đăng '+name+' lên trang chủ');resetCust();dropAssets(gone)}
@@ -605,41 +638,111 @@ function renderHist(){
   $('#rHist').innerHTML=mine.length?mine.map(r=>`<button data-day="${r.date}"><b class="${r.date===d?'on':''}">Ngày ${dm(r.date)}</b><span>Cào ${r.scraped}, vào tiền ${r.vaoTien}, còn lại ${r.conLai}</span></button>`).join(''):'<div class="empty">Chưa có báo cáo nào được lưu.</div>';
 }
 
-/* ---------- Danh sách khách hàng (bảng theo trạng thái) ---------- */
-const CST=[['moi','Mới'],['phan_hoi','Phản hồi'],['dang_noi','Đang nói chuyện'],['choi_giup','Chơi giúp'],['vao_tien','Vào tiền'],['chet','Chết']];
-const stOf=c=>CST.some(s=>s[0]===c.status)?c.status:'moi';
-const cMatch=(c,q)=>!q||norm([c.name,c.job,c.addr,c.note,c.birth,c.kids].join(' ')).includes(q);
-const DSF={ds:'',al:''};
-function custTables(rows,adm,key){
-  const by={}; CST.forEach(([k])=>by[k]=[]); rows.forEach(c=>by[stOf(c)].push(c));
-  const f=DSF[key];
-  const sum=`<div class="stsum"><button type="button" class="pill" data-stf="${key}:" aria-pressed="${!f}" style="--c:var(--accent)">Tất cả ${rows.length}</button>`+
-    CST.map(([k,l])=>`<button type="button" class="pill" data-stf="${key}:${k}" aria-pressed="${f===k}" style="--c:var(--s-${k})">${l} ${by[k].length}</button>`).join('')+'</div>';
-  const W=[52,170].concat(adm?[72]:[],[168,124,84,140,170,100,120,220,112]);
-  const head=`<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead><tr><th>STT</th><th>Tên</th>${adm?'<th>NV</th>':''}<th>Trạng thái</th><th>Đánh giá</th><th>Năm sinh</th><th>Nghề nghiệp</th><th>Địa chỉ</th><th>Hôn nhân</th><th>Con cái</th><th>Ghi chú</th><th>Ngày đăng</th></tr></thead>`;
-  const row=(c,i)=>{
-    const st=stOf(c), r=RATING[c.rating], can=adm||c.code===UI.code;
-    const nm=!adm&&c.code===UI.code?`<button type="button" class="nm" data-edit="${c.id}" title="Sửa thông tin">${esc(c.name)}</button>`:`<span class="nm">${esc(c.name)}</span>`;
-    const sel=can?`<select data-st="${c.id}" aria-label="Trạng thái của ${esc(c.name)}" style="--c:var(--s-${st})">${CST.map(([k,l])=>`<option value="${k}" ${k===st?'selected':''}>${l}</option>`).join('')}</select>`:esc(CST.find(s=>s[0]===st)[1]);
-    return `<tr><td class="num">${i+1}</td><td>${nm}</td>${adm?`<td>NV ${esc(c.code)}</td>`:''}<td>${sel}</td><td>${r?`<span class="rt" style="--c:var(${r[1]})">${r[0]}</span>`:''}</td><td>${esc(c.birth||'')}</td><td class="clip" title="${esc(c.job)}">${esc(c.job||'')}</td><td class="clip" title="${esc(c.addr)}">${esc(c.addr||'')}</td><td>${esc(c.marital||'')}</td><td class="clip" title="${esc(c.kids)}">${esc(c.kids||'')}</td><td class="clip" title="${esc(c.note)}">${esc(c.note||'')}</td><td>${c.createdAt?fmtT(c.createdAt):''}</td></tr>`;
-  };
-  const tables=CST.filter(([k])=>!f||f===k).map(([k,l])=>`<div class="sthead" style="--c:var(--s-${k})"><i></i><h2>${l}</h2><small>${by[k].length} khách</small></div>`+
-    (by[k].length?`<div class="tw"><table class="ctab" style="width:${W.reduce((a,b)=>a+b,0)}px">${head}<tbody>${by[k].map(row).join('')}</tbody></table></div>`:'<div class="empty" style="padding:12px">Chưa có khách trong bảng này.</div>')).join('');
-  return sum+tables;
+/* ---------- Danh sách khách hàng (bảng tính) ---------- */
+const STAGES=[['Mới kết bạn','#FFE5A0','#5C4300'],['Tạo niềm tin/tình cảm','#D4EDBC','#1E4D0F'],['Báo họp','#753800','#FFE5CC'],['Công tác','#B10202','#FFE0DE'],
+  ['Đang chơi giúp','#11734B','#D4F5E4'],['Đang vào tiền','#0A53A8','#DCEBFF'],['Chết','#3D3D3D','#F0F0F0']];
+const RANKS=[['A - Rất tiềm năng','#E6E6E6','#2B2B2B'],['B - Tiềm năng','#E6E6E6','#2B2B2B'],['C - Bình thường','#E6E6E6','#2B2B2B'],['D - Ít tiềm năng','#E6E6E6','#2B2B2B']];
+const PICK={stage:STAGES,rank:RANKS};
+// [key, tiêu đề, độ rộng, kiểu]
+const SCOLS=[['name','Tên khách hàng',190],['job','Nghề nghiệp',150],['addr','Nơi ở',170],['family','Hôn nhân / Con cái',170],['since','Kết bạn từ ngày',150,'date'],
+  ['stage','Tình trạng giai đoạn',200,'pick'],['rank','Xếp hạng',180,'pick'],['revenue','Doanh thu (VNĐ)',150,'money'],['note','Ghi chú',260]];
+const SH={pend:{ds:false,al:false},arm:null,hold:0};
+const tagOf=(k,v)=>{const o=(PICK[k]||[]).find(x=>x[0]===v);return v?`<span class="tg" style="--tb:${o?o[1]:'#E6E6E6'};--tf:${o?o[2]:'#2B2B2B'}">${esc(v)}</span>`:''};
+const money=n=>n?Number(n).toLocaleString('vi-VN'):'';
+const sMatch=(r,q)=>!q||norm([r.name,r.job,r.addr,r.family,r.note].join(' ')).includes(q);
+function stageOptions(){
+  ['#ds-st','#al-st'].forEach(id=>{const el=$(id);if(!el)return;const v=el.value;
+    el.innerHTML='<option value="">Mọi tình trạng</option>'+STAGES.map(([l])=>`<option ${l===v?'selected':''}>${esc(l)}</option>`).join('')+`<option value="__none" ${v==='__none'?'selected':''}>Chưa chọn tình trạng</option>`});
 }
+function sheetRow(r,i,adm,blank){
+  const id=r?r.id:newId(), can=!r||adm||r.code===UI.code;
+  const cell=([k,,,t])=>{
+    const v=r?r[k]:'';
+    if(!can)return `<td><input value="${esc(t==='money'?money(v):v)}" readonly tabindex="-1"></td>`;
+    if(t==='pick')return `<td><button type="button" class="pick" data-pick="${k}" data-v="${esc(v||'')}" aria-haspopup="listbox" aria-label="${k==='stage'?'Tình trạng giai đoạn':'Xếp hạng'}">${tagOf(k,v)}</button></td>`;
+    if(t==='date')return `<td><input type="date" data-k="${k}" value="${esc(v||'')}" required aria-label="Kết bạn từ ngày"></td>`;
+    if(t==='money')return `<td><input class="money" data-k="${k}" inputmode="numeric" value="${money(v)}"></td>`;
+    return `<td><input data-k="${k}" value="${esc(v||'')}" autocomplete="off"></td>`;
+  };
+  return `<tr data-row="${id}" class="${blank?'blank':''}"><td>${blank?'':i+1}</td>${adm?`<td class="nvc">${r?'NV '+esc(r.code):''}</td>`:''}${SCOLS.map(cell).join('')}`+
+    `<td>${r&&can?`<button type="button" class="rmrow ${SH.arm===id?'arm':''}" data-rmrow="${id}" aria-label="Xoá dòng">${SH.arm===id?'Xoá?':'×'}</button>`:''}</td></tr>`;
+}
+function sheetTable(rows,adm,blanks){
+  const W=[56].concat(adm?[70]:[],SCOLS.map(c=>c[2]),[44]), tot=rows.reduce((a,r)=>a+(+r.revenue||0),0);
+  const ri=SCOLS.findIndex(c=>c[0]==='revenue')+1+(adm?1:0);
+  return `<div class="sw"><table class="sheet" style="width:${W.reduce((a,b)=>a+b,0)}px"><colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>`+
+    `<thead><tr><th>STT</th>${adm?'<th>NV</th>':''}${SCOLS.map(c=>`<th>${c[1]}</th>`).join('')}<th aria-label="Xoá"></th></tr></thead>`+
+    `<tbody>${rows.map((r,i)=>sheetRow(r,i,adm)).join('')}${Array.from({length:blanks},()=>sheetRow(null,0,adm,true)).join('')}</tbody>`+
+    `<tfoot><tr><td colspan="${ri}">Tổng ${rows.length} khách</td><td style="text-align:right">${money(tot)||0}</td><td colspan="${W.length-ri-1}"></td></tr></tfoot></table></div>`;
+}
+const sheetBusy=key=>{const a=document.activeElement, box=$(key==='ds'?'#ds-body':'#al-body');return SH.hold>0||!$('#menu').hidden||!!(a&&box&&box.contains(a))};
 function renderDS(){
   if(!UI.code)return;
-  const q=norm($('#ds-q').value), mine=S.customers.filter(c=>c.code===UI.code);
-  const rows=mine.filter(c=>cMatch(c,q));
-  $('#dsSub').textContent=`Bạn có ${mine.length} khách`+(rows.length!==mine.length?`, đang hiện ${rows.length}`:'')+'. Đổi trạng thái để chuyển khách sang bảng khác.';
-  $('#ds-body').innerHTML=mine.length?custTables(rows,false,'ds'):'<div class="empty">Bạn chưa đăng khách nào. Thêm khách ở mục Khách mới.</div>';
+  if(sheetBusy('ds')){SH.pend.ds=true;return} SH.pend.ds=false;
+  const q=norm($('#ds-q').value), st=$('#ds-st').value, mine=S.sheet.filter(r=>r.code===UI.code).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  const rows=mine.filter(r=>sMatch(r,q)&&(!st||(st==='__none'?!r.stage:r.stage===st)));
+  const filtering=q||st;
+  $('#dsSub').textContent=`Bạn có ${mine.length} khách`+(filtering?`, đang hiện ${rows.length}`:'')+'. Gõ thẳng vào ô để nhập, dữ liệu tự lưu khi chuyển sang ô khác.';
+  paintSheet($('#ds-body'),sheetTable(rows,false,filtering?0:Math.max(5,20-rows.length)));
 }
-async function setStatus(id,st,el){
-  const c=S.customers.find(x=>x.id===id); if(!c||(!UI.admin&&c.code!==UI.code)||stOf(c)===st)return;
-  const {id:_,...obj}=c; obj.status=st; obj.statusAt=Date.now();
-  el.disabled=true;
-  try{await put('customers',id,obj);c.status=st;c.statusAt=obj.statusAt;toast(`Đã chuyển ${c.name} sang “${CST.find(s=>s[0]===st)[1]}”`);refresh()}
-  catch(e){toast(errMsg(e));el.value=stOf(c)}finally{el.disabled=false}
+// Vẽ lại bảng nhưng giữ vị trí cuộn và ô đang chọn
+function paintSheet(box,html){
+  const sx=box.querySelector('.sw'), keep=sx?[sx.scrollLeft,sx.scrollTop]:null, a=document.activeElement;
+  const tr=a&&box.contains(a)&&a.closest('tr[data-row]'), at=tr?[tr.dataset.row,[...tr.children].indexOf(a.closest('td'))]:null;
+  box.innerHTML=html;
+  const n=box.querySelector('.sw'); if(keep&&n){n.scrollLeft=keep[0];n.scrollTop=keep[1]}
+  if(at){const r=box.querySelector(`tr[data-row="${at[0]}"]`),c=r&&r.children[at[1]],f=c&&c.querySelector('input,button');if(f)f.focus({preventScroll:true})}
+}
+function rowData(tr){
+  const o={};
+  tr.querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k;o[k]=k==='revenue'?(parseInt(el.value.replace(/\D/g,''),10)||0):el.value.trim()});
+  tr.querySelectorAll('[data-pick]').forEach(el=>o[el.dataset.pick]=el.dataset.v||'');
+  return o;
+}
+async function saveRow(tr){
+  const id=tr.dataset.row, old=S.sheet.find(x=>x.id===id), d=rowData(tr);
+  if(old&&!UI.admin&&old.code!==UI.code)return;
+  if(!old&&(UI.admin||!UI.code))return;
+  if(!old&&!Object.values(d).some(v=>v))return;
+  if(old&&SCOLS.every(([k])=>(old[k]??(k==='revenue'?0:''))===d[k]))return;
+  const now=Date.now(), {id:_,...base}=old||{code:UI.code,createdAt:now};
+  const obj={...base,...d,updatedAt:now};
+  if(!old){tr.classList.remove('blank');tr.firstElementChild.textContent=S.sheet.filter(r=>r.code===UI.code).length+1}
+  try{await put('sheet',id,obj)}catch(e){toast(errMsg(e))}
+}
+let menuFor=null;
+function openMenu(btn){
+  const k=btn.dataset.pick, list=PICK[k], m=$('#menu'), cur=btn.dataset.v;
+  menuFor=btn;
+  m.innerHTML=list.map(([l,b,f],i)=>`<button type="button" role="option" data-opt="${esc(l)}" class="${l===cur?'on':''}" aria-selected="${l===cur}"><span class="tg" style="--tb:${b};--tf:${f}">${esc(l)}</span>${k==='stage'?`<small style="float:right;color:var(--muted);padding-top:3px">${i+1}</small>`:''}</button>`).join('')+
+    (cur?'<button type="button" class="clr" data-opt="">Bỏ chọn</button>':'');
+  m.hidden=false; placeMenu();
+  (m.querySelector('.on')||m.querySelector('button')).focus({preventScroll:true});
+}
+function placeMenu(){
+  const m=$('#menu'), btn=menuFor; if(m.hidden||!btn)return;
+  if(!document.contains(btn)){closeMenu(false);return}
+  const r=btn.getBoundingClientRect(), h=m.offsetHeight, w=Math.max(r.width,220);
+  m.style.width=w+'px';
+  m.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';
+  m.style.top=(r.bottom+4+h>innerHeight&&r.top-4-h>0?r.top-4-h:r.bottom+4)+'px';
+}
+function closeMenu(refocus){
+  const m=$('#menu'); if(m.hidden)return; m.hidden=true; const b=menuFor; menuFor=null;
+  if(refocus&&b&&document.contains(b))b.focus();
+  flushSheets();
+}
+function choose(btn,v){
+  if(btn.dataset.v===v)return;
+  btn.dataset.v=v; btn.innerHTML=tagOf(btn.dataset.pick,v);
+  saveRow(btn.closest('tr'));
+}
+function flushSheets(){setTimeout(()=>{if(SH.pend.ds)renderDS();if(SH.pend.al&&UI.admin&&A.tab==='list')renderAList()},0)}
+async function rmRow(id,btn){
+  const r=S.sheet.find(x=>x.id===id); if(!r||(!UI.admin&&r.code!==UI.code))return;
+  if(SH.arm!==id){SH.arm=id;btn.textContent='Xoá?';btn.classList.add('arm');setTimeout(()=>{if(SH.arm===id){SH.arm=null;refresh()}},3000);return}
+  SH.arm=null;
+  try{await remove('sheet',id);toast('Đã xoá '+(r.name||'dòng'))}catch(e){toast(errMsg(e))}
 }
 
 /* ---------- Đồng bộ giao diện ---------- */
@@ -708,20 +811,18 @@ function aTab(t){
   window.scrollTo(0,0); renderAdmin();
 }
 function renderAList(){
-  const q=norm($('#al-q').value), nv=$('#al-nv').value, ms=$('#al-m');
-  const months=[...new Set(S.customers.map(c=>c.day&&c.day.slice(0,7)).filter(Boolean))].sort().reverse();
-  const mv=ms.value; ms.innerHTML='<option value="">Mọi tháng</option>'+months.map(m=>`<option value="${m}" ${m===mv?'selected':''}>${monthLabel(m)}</option>`).join('');
-  const m=ms.value;
-  const inM=S.customers.filter(c=>!m||(c.day&&c.day.slice(0,7)===m));
-  const rows=inM.filter(c=>(!nv||c.code===nv)&&cMatch(c,q));
-  $('#aListSub').textContent=`${S.customers.length} khách của cả đội`+(rows.length!==S.customers.length?`, đang hiện ${rows.length}`:'');
-  const staff=[...new Set(CODES.concat(inM.map(c=>c.code)))];
-  const cnt=(code,k)=>inM.filter(c=>c.code===code&&(!k||stOf(c)===k)).length;
-  const tot=CST.map(([k])=>inM.filter(c=>stOf(c)===k).length);
-  $('#al-matrix').innerHTML=`<div class="tw"><table><thead><tr><th>Nhân viên</th>${CST.map(([k,l])=>`<th class="num c" style="--c:var(--s-${k})">${l}</th>`).join('')}<th class="num">Tổng</th><th class="num">Tỉ lệ vào tiền</th></tr></thead><tbody>`+
-    staff.map(code=>{const t=cnt(code);return `<tr class="click" data-alnv="${esc(code)}"><td><b>NV ${esc(code)}</b>${code===nv?' ✓':''}</td>${CST.map(([k])=>`<td class="num">${nf(cnt(code,k))}</td>`).join('')}<td class="num"><b>${nf(t)}</b></td><td class="num">${t?pct(cnt(code,'vao_tien')/t):'—'}</td></tr>`}).join('')+
-    `</tbody><tfoot><tr><td>Cả đội</td>${tot.map(n=>`<td class="num">${nf(n)}</td>`).join('')}<td class="num">${nf(inM.length)}</td><td class="num">${inM.length?pct(tot[4]/inM.length):'—'}</td></tr></tfoot></table></div>`;
-  $('#al-body').innerHTML=rows.length?custTables(rows,true,'al'):'<div class="empty">Không có khách khớp bộ lọc.</div>';
+  if(sheetBusy('al')){SH.pend.al=true;return} SH.pend.al=false;
+  const q=norm($('#al-q').value), nv=$('#al-nv').value, st=$('#al-st').value;
+  const rows=S.sheet.filter(r=>(!nv||r.code===nv)&&sMatch(r,q)&&(!st||(st==='__none'?!r.stage:r.stage===st)));
+  $('#aListSub').textContent=`${S.sheet.length} khách do nhân viên nhập`+(rows.length!==S.sheet.length?`, đang hiện ${rows.length}`:'');
+  const staff=[...new Set(CODES.concat(S.sheet.map(r=>r.code)))];
+  const of=c=>S.sheet.filter(r=>r.code===c), cnt=(rs,l)=>rs.filter(r=>r.stage===l).length, rev=rs=>rs.reduce((a,r)=>a+(+r.revenue||0),0);
+  const line=(label,rs,attr)=>`<tr ${attr}><td><b>${label}</b></td>${STAGES.map(([l])=>`<td class="num">${nf(cnt(rs,l))}</td>`).join('')}<td class="num">${nf(rs.length)}</td><td class="num">${money(rev(rs))||0}</td></tr>`;
+  $('#al-matrix').innerHTML=`<div class="tw"><table><thead><tr><th>Nhân viên</th>${STAGES.map(([l,b])=>`<th class="num c" style="--c:${b}">${l}</th>`).join('')}<th class="num">Tổng khách</th><th class="num">Doanh thu (VNĐ)</th></tr></thead><tbody>`+
+    staff.map(c=>line('NV '+esc(c)+(c===nv?' ✓':''),of(c),`class="click" data-alnv="${esc(c)}"`)).join('')+
+    `</tbody><tfoot>${line('Cả đội',S.sheet,'')}</tfoot></table></div>`;
+  const sorted=rows.slice().sort((a,b)=>a.code===b.code?(a.createdAt||0)-(b.createdAt||0):String(a.code).localeCompare(String(b.code),'vi',{numeric:true}));
+  paintSheet($('#al-body'),sorted.length?sheetTable(sorted,true,0):'<div class="empty">Chưa có khách nào khớp bộ lọc.</div>');
 }
 function renderAdmin(){
   ({day:renderADay,month:renderAMonth,staff:renderAStaff,cust:renderACust,list:renderAList,codes:renderCodes})[A.tab]();
@@ -870,14 +971,55 @@ $('#a-nv').addEventListener('change',renderACust);
 $('#a-cday').addEventListener('change',renderACust);
 $('#al-q').addEventListener('input',renderAList);
 $('#al-nv').addEventListener('change',renderAList);
-$('#al-m').addEventListener('change',renderAList);
+$('#al-st').addEventListener('change',renderAList);
 $('#ds-q').addEventListener('input',renderDS);
-document.addEventListener('change',e=>{const s=e.target.closest('select[data-st]');if(s)setStatus(s.dataset.st,s.value,s)});
+$('#ds-st').addEventListener('change',renderDS);
+stageOptions();
+document.addEventListener('scroll',e=>{if(!$('#menu').contains(e.target))placeMenu()},true);
+addEventListener('resize',placeMenu);
+// Bảng tính: lưu khi rời ô, chọn nhanh bằng menu/phím tắt
+// Sự kiện change chạy lúc con trỏ chưa sang ô mới: hoãn vẽ lại tới khi biết con trỏ ở đâu
+document.addEventListener('change',e=>{const el=e.target.closest('.sheet [data-k]');if(!el)return;SH.hold++;saveRow(el.closest('tr'));setTimeout(()=>{SH.hold--;flushSheets()},0)});
+document.addEventListener('focusin',e=>{const el=e.target.closest('.sheet input.money');if(el)el.value=el.value.replace(/\D/g,'')});
+document.addEventListener('focusout',e=>{
+  const el=e.target.closest('.sheet input.money');if(el){const n=parseInt(el.value.replace(/\D/g,''),10);el.value=n?money(n):''}
+  if(e.target.closest('.sheet,#menu'))setTimeout(()=>{if(!sheetBusy('ds')&&!sheetBusy('al'))flushSheets()},0);
+});
+document.addEventListener('keydown',e=>{
+  const m=$('#menu');
+  if(!m.hidden&&m.contains(e.target)){
+    const bs=[...m.querySelectorAll('button')], i=bs.indexOf(e.target);
+    if(e.key==='ArrowDown'){e.preventDefault();(bs[i+1]||bs[0]).focus()}
+    else if(e.key==='ArrowUp'){e.preventDefault();(bs[i-1]||bs[bs.length-1]).focus()}
+    else if(e.key==='Escape'||e.key==='Tab'){e.preventDefault();closeMenu(true)}
+    else{const b=menuFor,k=b&&b.dataset.pick,list=k&&PICK[k],c=e.key.toUpperCase();
+      const o=k==='stage'?list[+e.key-1]:list&&list.find(x=>x[0][0]===c);
+      if(o&&e.key.length===1){e.preventDefault();choose(b,o[0]);closeMenu(true)}}
+    return;
+  }
+  const b=e.target.closest&&e.target.closest('.sheet .pick');
+  if(b){
+    const list=PICK[b.dataset.pick], c=e.key.toUpperCase();
+    const o=b.dataset.pick==='stage'?list[+e.key-1]:list.find(x=>x[0][0]===c);
+    if(o&&e.key.length===1){e.preventDefault();choose(b,o[0]);return}
+    if(e.key==='ArrowDown'||e.key==='Enter'||e.key===' '){e.preventDefault();openMenu(b);return}
+    if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();choose(b,'');return}
+  }
+  const inp=e.target.closest&&e.target.closest('.sheet input');
+  if(inp&&e.key==='Enter'){
+    e.preventDefault(); const td=inp.closest('td'), col=[...td.parentElement.children].indexOf(td);
+    const nx=td.parentElement.nextElementSibling; const t=nx&&nx.children[col]&&nx.children[col].querySelector('input');
+    if(t)t.focus(); else inp.blur();
+  }
+});
 $('#addCode').addEventListener('click',addCode);
 $('#newCode').addEventListener('keydown',e=>{if(e.key==='Enter')addCode()});
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-atab]'); if(t){aTab(t.dataset.atab);return}
-  const sf=e.target.closest('[data-stf]'); if(sf){const [k,v]=sf.dataset.stf.split(':');DSF[k]=v;k==='ds'?renderDS():renderAList();return}
+  const pk=e.target.closest('.sheet .pick'); if(pk){$('#menu').hidden||menuFor!==pk?openMenu(pk):closeMenu(true);return}
+  const op=e.target.closest('#menu [data-opt]'); if(op){const b=menuFor;if(b)choose(b,op.dataset.opt);closeMenu(true);return}
+  if(!$('#menu').hidden&&!e.target.closest('#menu'))closeMenu(false);
+  const rr=e.target.closest('[data-rmrow]'); if(rr){rmRow(rr.dataset.rmrow,rr);return}
   const an=e.target.closest('[data-alnv]'); if(an){const s=$('#al-nv');s.value=s.value===an.dataset.alnv?'':an.dataset.alnv;renderAList();return}
   const g=e.target.closest('[data-gostaff]'); if(g){A.staff=g.dataset.gostaff;aTab('staff');return}
   const p=e.target.closest('[data-pickstaff]'); if(p){A.staff=p.dataset.pickstaff;renderAStaff();return}

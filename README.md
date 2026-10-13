@@ -4,9 +4,12 @@
 
 ## Chức năng
 
-**Nhân viên:** Khách mới · Báo cáo ngày · Trang chủ (khách cả đội) · **Danh sách khách hàng** — khách của mình chia thành 6 bảng theo trạng thái (Mới, Phản hồi, Đang nói chuyện, Chơi giúp, Vào tiền, Chết). Đổi trạng thái trong bảng để chuyển khách sang bảng khác; bấm tên khách để sửa.
+**Nhân viên:** Khách mới · Báo cáo ngày · Trang chủ (khách cả đội) · **Danh sách khách hàng** — bảng tính nhập thẳng vào ô, tự lưu khi rời ô. Các cột: STT, Tên khách hàng, Nghề nghiệp, Nơi ở, Hôn nhân / Con cái, Kết bạn từ ngày, Tình trạng giai đoạn, Xếp hạng, Doanh thu (VNĐ), Ghi chú.
+- *Tình trạng giai đoạn*: bấm ô để chọn thẻ màu (Mới kết bạn, Tạo niềm tin/tình cảm, Báo họp, Công tác, Đang chơi giúp, Đang vào tiền, Chết) hoặc bấm phím 1–7.
+- *Xếp hạng*: chọn A – Rất tiềm năng, B – Tiềm năng, C – Bình thường, D – Ít tiềm năng, hoặc bấm phím A–D.
+- Enter để xuống dòng dưới, Tab để sang ô bên phải; bấm × hai lần để xoá dòng.
 
-**Quản lý:** Báo cáo ngày · Theo tháng · Từng nhân viên · Khách mới · **Danh sách khách hàng** — bảng tổng hợp số khách theo từng nhân viên × trạng thái (kèm tỉ lệ vào tiền), lọc theo nhân viên/tháng/từ khoá, và xem/đổi trạng thái khách của cả đội · Mã nhân viên.
+**Quản lý:** Báo cáo ngày · Theo tháng · Từng nhân viên · Khách mới · **Danh sách khách hàng** — bảng tổng hợp số khách theo nhân viên × tình trạng giai đoạn và tổng doanh thu; xem/sửa bảng khách của mọi nhân viên, lọc theo nhân viên, tình trạng, từ khoá · Mã nhân viên.
 
 ## Cấu trúc
 
