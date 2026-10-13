@@ -127,7 +127,6 @@ main{max-width:760px;margin:0 auto;padding:20px 16px 72px}
 .lb{position:fixed;inset:0;background:rgba(5,10,16,.9);z-index:50;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 56px) 12px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .lb img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
 .lb .x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:22px;cursor:pointer}
-.adminEntry{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted)}
 .admin .topin,.admin main{max-width:1140px}
 .ctrlrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ctrlrow input,.ctrlrow select,.head select{width:auto}
@@ -176,7 +175,6 @@ th.c{border-bottom:2px solid var(--c)}
     <input id="codeIn" class="code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" aria-label="Mã nhân viên" placeholder="•••">
     <div id="loginErr" class="err" role="alert"></div>
     <button class="btn wide" id="loginBtn">Vào trang báo cáo</button>
-    <div class="adminEntry" id="adminEntry" hidden>Bạn là quản lý của trang này<button class="btn ghost wide" id="adminBtn">Vào trang quản lý</button></div>
   </div>
 </div>
 
@@ -349,7 +347,6 @@ async function initStore(){
     S.mode='local';localLoad();if(!us)S.isAdmin=true;
     try{const c=JSON.parse(localStorage.getItem(SKEY)||'null');if(Array.isArray(c)&&c.length){CODES=c;staffOptions()}}catch(e){}
   }
-  $('#adminEntry').hidden=!S.isAdmin;
   if(UI.admin)ensureMonth(A.month);
   refresh(); renderPhotos();
 }
@@ -583,7 +580,6 @@ function renderHist(){
 function refresh(){
   const m={loading:['Đang kết nối…','var(--muted)'],cloud:['Dữ liệu dùng chung với cả đội','var(--s-vao_tien)'],local:['Đang lưu tạm trên máy này, cả đội chưa xem được','var(--warn)'],error:['Mất kết nối dữ liệu. Tải lại trang để tiếp tục','var(--s-chet)']}[S.mode];
   document.querySelectorAll('.sync').forEach(s=>{s.style.setProperty('--c',m[1]);s.querySelector('span').textContent=m[0]});
-  $('#adminEntry').hidden=!S.isAdmin;
   if(UI.admin){renderAdmin();return}
   if(!UI.code)return;
   renderMyToday(); renderFeed(); renderHist(); fillReport(false);
@@ -783,7 +779,6 @@ async function rmCode(c){
   if(await saveCodes(CODES.filter(x=>x!==c)))toast('Đã xoá mã '+c+'. Báo cáo cũ của mã này vẫn được giữ.');
 }
 
-$('#adminBtn').addEventListener('click',enterAdmin);
 $('#aLogout').addEventListener('click',adminLogout);
 $('#a-date').addEventListener('change',e=>{if(!e.target.value)return;A.date=e.target.value;const m=A.date.slice(0,7);if(m!==A.month){A.month=m;monthOptions();ensureMonth(m)}refresh()});
 document.querySelectorAll('.msel').forEach(s=>s.addEventListener('change',e=>setMonth(e.target.value)));
