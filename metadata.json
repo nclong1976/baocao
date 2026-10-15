@@ -1,0 +1,8 @@
+{
+  "name": "Sổ Khách – Báo cáo nhân viên",
+  "description": "Ứng dụng web quản lý khách hàng mới, báo cáo ngày, danh sách khách hàng dạng bảng tính và tổng hợp quản trị cho đội ngũ kinh doanh.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
