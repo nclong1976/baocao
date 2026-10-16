@@ -12,6 +12,13 @@ import { HomeFeedView } from './components/HomeFeedView';
 import { SpreadsheetView } from './components/SpreadsheetView';
 import { AdminView } from './components/AdminView';
 
+const STAFF_VIEWS: Record<'moi' | 'bc' | 'home' | 'ds', string> = {
+  moi: 'Khách mới',
+  bc: 'Báo cáo ngày',
+  home: 'Trang chủ',
+  ds: 'Danh sách khách hàng',
+};
+
 export const App: React.FC = () => {
   const [storeState, setStoreState] = useState<StoreState>(() => store.getState());
   const [currentCode, setCurrentCode] = useState<string | null>(() => {
@@ -39,6 +46,13 @@ export const App: React.FC = () => {
     });
     return unsub;
   }, []);
+
+  // Quản lý thấy được nhân viên nào đang mở app, trên thiết bị nào, ở màn hình nào.
+  // Màn hình của quản lý do AdminView tự báo.
+  useEffect(() => {
+    if (isAdminMode) return;
+    store.identify(currentCode ? { role: 'staff', code: currentCode, view: STAFF_VIEWS[activeTab] } : null);
+  }, [isAdminMode, currentCode, activeTab]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -105,6 +119,11 @@ export const App: React.FC = () => {
           customers={storeState.customers}
           reports={storeState.reports}
           sheet={storeState.sheet}
+          live={storeState.live}
+          mode={storeState.mode}
+          presence={storeState.presence}
+          activity={storeState.activity}
+          lastSync={storeState.lastSync}
           onLogout={handleLogout}
           onToast={showToast}
           onZoomPhoto={setLightboxSrc}
@@ -179,7 +198,7 @@ export const App: React.FC = () => {
       </header>
 
       <main>
-        <SyncStatus mode={storeState.mode} />
+        <SyncStatus mode={storeState.mode} live={storeState.live} />
 
         {activeTab === 'moi' && (
           <CustomerNewView

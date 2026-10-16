@@ -11,6 +11,7 @@
 - **Danh sách khách hàng (Bảng tính):** Giao diện bảng tính nhập liệu trực tiếp vào ô và tự động lưu. Các cột: STT, Tên, Nghề nghiệp, Nơi ở, Hôn nhân/Con cái, Kết bạn từ ngày, Tình trạng giai đoạn (menu thẻ màu hoặc phím tắt 1–7), Xếp hạng (phím tắt A–D), Doanh thu (VNĐ - tự động định dạng số tiền), Ghi chú.
 
 ### Quản trị (Mã quản lý: `0`)
+- **Trực tiếp (mặc định):** Theo dõi theo thời gian thực mọi thiết bị đang mở ứng dụng — nhân viên nào đang trực tuyến, trên điện thoại/máy tính bảng/máy tính nào, trình duyệt gì, đang ở màn hình nào; ai đã nộp báo cáo hôm nay; dòng hoạt động trực tiếp (nộp báo cáo, đăng khách, sửa bảng khách hàng, xoá, vào/rời ứng dụng). Có thông báo nổi trong trang và tuỳ chọn thông báo của trình duyệt khi nhân viên nộp báo cáo hoặc đăng khách.
 - **Báo cáo ngày:** Tình hình nộp báo cáo (nhân viên đã nộp / chưa nộp), thẻ KPI tổng hợp, bảng chi tiết từng nhân viên, sao chép văn bản tổng hợp.
 - **Theo tháng:** Thống kê tổng hợp cả đội theo tháng được chọn, biểu đồ đường SVG diễn biến số lượng cào & khách vào tiền theo ngày, bảng hiệu suất và tỷ lệ chuyển đổi từng nhân viên.
 - **Từng nhân viên:** Chọn nhân viên và xem chi tiết theo tháng, biểu đồ xu hướng và bảng chi tiết từng ngày.
@@ -23,6 +24,19 @@
 - **Vite**
 - CSS gốc chuẩn mực giữ trọn vẹn phong cách thiết kế, font chữ *Be Vietnam Pro*, hỗ trợ giao diện sáng & tối (Light/Dark mode)
 - Hỗ trợ lưu trữ cục bộ (`localStorage`) và đồng bộ thời gian thực qua **Supabase** (nếu cấu hình)
+
+## Kết nối tất cả thiết bị (thời gian thực)
+
+Mặc định mỗi máy lưu dữ liệu riêng, quản lý không thấy báo cáo của máy khác. Để mọi điện thoại, máy tính bảng, máy tính của nhân viên gửi báo cáo về một chỗ và quản lý xem được ngay lập tức:
+
+1. Tạo một project trên [Supabase](https://supabase.com) (gói miễn phí là đủ).
+2. Mở **SQL Editor**, dán và chạy toàn bộ `supabase/schema.sql` (tạo bảng dữ liệu, bật Realtime, tạo kho ảnh).
+3. Lấy **Project URL** và **anon / publishable key** trong *Project Settings → API*, rồi điền vào **một** trong hai chỗ:
+   - `public/config.js` (hoặc `config.js` trong thư mục đã build — sửa được trực tiếp trên máy chủ, không cần build lại), hoặc
+   - biến môi trường khi build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (file `.env`, hoặc *Settings → Secrets and variables → Actions* của repo GitHub để workflow deploy tự dùng).
+4. Mở cùng một đường link (GitHub Pages hoặc tên miền của bạn) trên mọi thiết bị. Trên điện thoại có thể chọn *Thêm vào màn hình chính* để dùng như ứng dụng.
+
+Khi đã kết nối, dòng trạng thái hiện *"Đã kết nối thời gian thực"*. Nếu mạng chập chờn, ứng dụng tự kết nối lại và tải bù những thay đổi bị lỡ.
 
 ## Khởi chạy
 ```bash

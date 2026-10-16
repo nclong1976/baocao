@@ -133,3 +133,26 @@ export const SCOLS: SheetColumnDef[] = [
   { key: 'revenue', label: 'Doanh thu (VNĐ)', width: 150, type: 'money' },
   { key: 'note', label: 'Ghi chú', width: 260 },
 ];
+
+export type LiveStatus = 'connecting' | 'live' | 'offline';
+
+/** Một thiết bị đang mở ứng dụng, chia sẻ qua kênh presence của Supabase. */
+export interface PresenceEntry {
+  deviceId: string;
+  role: 'staff' | 'admin';
+  code: string;
+  device: string;
+  browser: string;
+  view: string;
+  since: number;
+}
+
+export interface ActivityItem {
+  id: string;
+  at: number;
+  code: string;
+  kind: 'report' | 'customer' | 'sheet' | 'delete' | 'online' | 'offline';
+  text: string;
+}
+
+export const DKEY = 'sokhach-device';

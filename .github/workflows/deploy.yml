@@ -14,23 +14,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: Build
+        # Khai báo VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY trong
+        # Settings > Secrets and variables > Actions để mọi thiết bị dùng chung dữ liệu.
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PHOTO_BUCKET: ${{ vars.VITE_SUPABASE_PHOTO_BUCKET || 'photos' }}
+        run: npm run build
+      - run: touch dist/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref_name == github.event.repository.default_branch
+        with:
+          path: dist
+
   deploy:
     # Chỉ deploy từ nhánh mặc định của repo
     if: github.ref_name == github.event.repository.default_branch
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Chuẩn bị thư mục site
-        run: |
-          mkdir -p _site
-          cp index.html store.js config.js _site/
-          touch _site/.nojekyll
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Customer, Report, SheetCustomer, R_FIELDS, DSTAT, STAGES } from '../types';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { Customer, Report, SheetCustomer, R_FIELDS, DSTAT, STAGES, ActivityItem, LiveStatus, PresenceEntry, StorageMode } from '../types';
 import { BrandMark } from './BrandMark';
 import { SyncStatus } from './SyncStatus';
 import { CustomerCard } from './CustomerCard';
 import { SpreadsheetView } from './SpreadsheetView';
+import { LiveView } from './LiveView';
 import { store } from '../services/store';
 import {
   dayKey,
@@ -24,12 +25,29 @@ interface AdminViewProps {
   customers: Customer[];
   reports: Report[];
   sheet: SheetCustomer[];
+  live: LiveStatus;
+  mode: StorageMode;
+  presence: PresenceEntry[];
+  activity: ActivityItem[];
+  lastSync: number;
   onLogout: () => void;
   onToast: (msg: string) => void;
   onZoomPhoto: (url: string) => void;
 }
 
-type AdminTab = 'day' | 'month' | 'staff' | 'cust' | 'list' | 'codes';
+type AdminTab = 'live' | 'day' | 'month' | 'staff' | 'cust' | 'list' | 'codes';
+
+const TAB_NAMES: Record<AdminTab, string> = {
+  live: 'Trực tiếp',
+  day: 'Báo cáo ngày',
+  month: 'Theo tháng',
+  staff: 'Từng nhân viên',
+  cust: 'Khách mới',
+  list: 'Danh sách khách hàng',
+  codes: 'Mã nhân viên',
+};
+
+const NKEY = 'sokhach-notify';
 
 const SHORT_NAMES: Record<string, string> = {
   scraped: 'Cào',
@@ -50,11 +68,71 @@ export const AdminView: React.FC<AdminViewProps> = ({
   customers,
   reports,
   sheet,
+  live,
+  mode,
+  presence,
+  activity,
+  lastSync,
   onLogout,
   onToast,
   onZoomPhoto,
 }) => {
-  const [tab, setTab] = useState<AdminTab>('day');
+  const [tab, setTab] = useState<AdminTab>('live');
+  const [notifyOn, setNotifyOn] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(NKEY) === '1' && 'Notification' in window && Notification.permission === 'granted';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    store.identify({ role: 'admin', code: '0', view: TAB_NAMES[tab] });
+  }, [tab]);
+  useEffect(() => () => store.identify(null), []);
+
+  // Báo ngay khi nhân viên nộp báo cáo hoặc đăng khách, kể cả khi đang ở tab khác.
+  const seenActivity = useRef<string | null>(activity[0]?.id ?? null);
+  useEffect(() => {
+    const head = activity[0];
+    if (!head || head.id === seenActivity.current) return;
+    const fresh: ActivityItem[] = [];
+    for (const a of activity) {
+      if (a.id === seenActivity.current) break;
+      fresh.push(a);
+    }
+    seenActivity.current = head.id;
+    const important = fresh.filter(a => a.kind === 'report' || a.kind === 'customer');
+    if (!important.length) return;
+    onToast(important[0].text);
+    if (notifyOn && document.visibilityState !== 'visible') {
+      important.slice(0, 3).forEach(a => {
+        try {
+          new Notification('Sổ Khách', { body: a.text, tag: a.id });
+        } catch (e) {}
+      });
+    }
+  }, [activity, notifyOn, onToast]);
+
+  const handleToggleNotify = async () => {
+    if (notifyOn) {
+      setNotifyOn(false);
+      try {
+        localStorage.removeItem(NKEY);
+      } catch (e) {}
+      return;
+    }
+    const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+    if (perm !== 'granted') {
+      onToast('Trình duyệt chưa cho phép thông báo. Mở cài đặt trang để cho phép.');
+      return;
+    }
+    setNotifyOn(true);
+    try {
+      localStorage.setItem(NKEY, '1');
+    } catch (e) {}
+    onToast('Máy này sẽ báo khi nhân viên nộp báo cáo hoặc đăng khách');
+  };
   const [selectedDate, setSelectedDate] = useState(() => dayKey(Date.now()));
   const [selectedMonth, setSelectedMonth] = useState(() => dayKey(Date.now()).slice(0, 7));
   const [selectedStaff, setSelectedStaff] = useState<string>(() => codes[0] || '1');
@@ -425,60 +503,39 @@ export const AdminView: React.FC<AdminViewProps> = ({
             </div>
           </div>
           <nav className="tabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'day'}
-              onClick={() => setTab('day')}
-            >
-              Báo cáo ngày
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'month'}
-              onClick={() => setTab('month')}
-            >
-              Theo tháng
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'staff'}
-              onClick={() => setTab('staff')}
-            >
-              Từng nhân viên
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'cust'}
-              onClick={() => setTab('cust')}
-            >
-              Khách mới
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'list'}
-              onClick={() => setTab('list')}
-            >
-              Danh sách khách hàng
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'codes'}
-              onClick={() => setTab('codes')}
-            >
-              Mã nhân viên
-            </button>
+            {(Object.keys(TAB_NAMES) as AdminTab[]).map(k => (
+              <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
+                {TAB_NAMES[k]}
+                {k === 'live' && mode === 'cloud' && (
+                  <span className="tabcount">{presence.filter(p => p.role === 'staff').length}</span>
+                )}
+              </button>
+            ))}
           </nav>
         </div>
       </header>
 
       <main>
-        <SyncStatus mode={store.getState().mode} />
+        <SyncStatus mode={mode} live={live} />
+
+        {tab === 'live' && (
+          <LiveView
+            codes={codes}
+            customers={customers}
+            reports={reports}
+            presence={presence}
+            activity={activity}
+            live={live}
+            mode={mode}
+            lastSync={lastSync}
+            notifyOn={notifyOn}
+            onToggleNotify={handleToggleNotify}
+            onOpenStaff={c => {
+              setSelectedStaff(c);
+              setTab('staff');
+            }}
+          />
+        )}
 
         {/* TAB 1: BÁO CÁO NGÀY */}
         {tab === 'day' && (

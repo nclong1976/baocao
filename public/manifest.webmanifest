@@ -1,0 +1,14 @@
+{
+  "name": "Sổ Khách – Báo cáo nhân viên",
+  "short_name": "Sổ Khách",
+  "description": "Nhân viên gửi báo cáo, quản lý theo dõi theo thời gian thực trên mọi thiết bị.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F8",
+  "theme_color": "#1F4E8C",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
