@@ -6,7 +6,8 @@
  * Có thể sửa file này ngay trên máy chủ sau khi build mà không cần build lại.
  */
 window.SOKHACH_CONFIG = {
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://ljgbycowfcnqqigmjiwo.supabase.co',
+  // Khoá công khai (publishable), được phép để trong mã nguồn phía trình duyệt.
+  supabaseAnonKey: 'sb_publishable_7_waYk7QDH2E2FcK-JlSSQ_FWuo1NR2',
   photoBucket: 'photos'
 };

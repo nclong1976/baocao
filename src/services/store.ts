@@ -239,8 +239,16 @@ class AppStore {
 
     try {
       await this.loadAll();
-    } catch (e) {
+    } catch (e: any) {
       console.error('Supabase setup error:', e);
+      // Máy chủ chưa chạy supabase/schema.sql: dùng tạm dữ liệu trên máy thay vì báo lỗi.
+      if (e?.code === 'PGRST205' || e?.code === '42P01') {
+        this.sb = null;
+        this.loadLocal();
+        this.setState({ mode: 'local', live: 'offline', isAdmin: true });
+        this.refreshLocalPresence();
+        return;
+      }
       this.setState({ mode: 'error', live: 'offline' });
     }
 
