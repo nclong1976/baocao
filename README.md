@@ -10,8 +10,15 @@
 - **Trang chủ:** Dòng tin khách hàng mới của cả đội, tìm kiếm theo tên/nghề/địa chỉ/ghi chú, lọc theo nhân viên, xem phóng to ảnh khách hàng trong hộp thoại (lightbox).
 - **Danh sách khách hàng (Bảng tính):** Giao diện bảng tính nhập liệu trực tiếp vào ô và tự động lưu. Các cột: STT, Tên, Nghề nghiệp, Nơi ở, Hôn nhân/Con cái, Kết bạn từ ngày, Tình trạng giai đoạn (menu thẻ màu hoặc phím tắt 1–7), Xếp hạng (phím tắt A–D), Doanh thu (VNĐ - tự động định dạng số tiền), Ghi chú.
 
+### Lọc khách trùng (tự động)
+- Khi nhân viên nhập khách mới (form **Khách mới** hoặc gõ tên vào **Danh sách khách hàng**), hệ thống tự rà soát với toàn bộ khách của cả đội ngay trong lúc gõ.
+- Nhận ra trùng kể cả khi viết không dấu, đảo thứ tự họ tên, hoa/thường khác nhau; tên gần giống (sai 1–2 chữ) được coi là *có thể trùng* nếu cùng năm sinh hoặc cùng nơi ở. Khác năm sinh thì không báo.
+- Khi trùng: **còi hú, điện thoại rung và màn hình nhấp nháy đỏ**, hiện khách đã có (nhân viên nào, lúc nào, ở đâu). Nhân viên chọn *huỷ nhập* hoặc *người khác, vẫn tiếp tục*.
+- Nhân viên vừa đăng khách vừa ghi chính khách đó vào bảng của mình thì không bị coi là trùng.
+
 ### Quản trị (Mã quản lý: `0`)
 - **Trực tiếp (mặc định):** Theo dõi theo thời gian thực mọi thiết bị đang mở ứng dụng — nhân viên nào đang trực tuyến, trên điện thoại/máy tính bảng/máy tính nào, trình duyệt gì, đang ở màn hình nào; ai đã nộp báo cáo hôm nay; dòng hoạt động trực tiếp (nộp báo cáo, đăng khách, sửa bảng khách hàng, xoá, vào/rời ứng dụng). Có thông báo nổi trong trang và tuỳ chọn thông báo của trình duyệt khi nhân viên nộp báo cáo hoặc đăng khách.
+- **Khách trùng:** Danh sách các nhóm khách bị nhập trùng (ai nhập, nguồn, năm sinh, nơi ở, thời điểm). Máy quản lý cũng hú còi và nháy đỏ ngay khi một nhân viên nhập khách trùng.
 - **Báo cáo ngày:** Tình hình nộp báo cáo (nhân viên đã nộp / chưa nộp), thẻ KPI tổng hợp, bảng chi tiết từng nhân viên, sao chép văn bản tổng hợp.
 - **Theo tháng:** Thống kê tổng hợp cả đội theo tháng được chọn, biểu đồ đường SVG diễn biến số lượng cào & khách vào tiền theo ngày, bảng hiệu suất và tỷ lệ chuyển đổi từng nhân viên.
 - **Từng nhân viên:** Chọn nhân viên và xem chi tiết theo tháng, biểu đồ xu hướng và bảng chi tiết từng ngày.

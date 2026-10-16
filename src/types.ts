@@ -151,8 +151,10 @@ export interface ActivityItem {
   id: string;
   at: number;
   code: string;
-  kind: 'report' | 'customer' | 'sheet' | 'delete' | 'online' | 'offline';
+  kind: 'report' | 'customer' | 'sheet' | 'delete' | 'online' | 'offline' | 'dup';
   text: string;
+  /** Khách trùng (chỉ có ở kind 'dup'). */
+  matches?: import('./services/dupcheck').DupMatch[];
 }
 
 export const DKEY = 'sokhach-device';

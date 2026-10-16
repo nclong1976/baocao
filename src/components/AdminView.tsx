@@ -6,6 +6,8 @@ import { CustomerCard } from './CustomerCard';
 import { SpreadsheetView } from './SpreadsheetView';
 import { LiveView } from './LiveView';
 import { store } from '../services/store';
+import { duplicateGroups } from '../services/dupcheck';
+import { raiseAlarm } from '../services/alarm';
 import {
   dayKey,
   dm,
@@ -35,10 +37,11 @@ interface AdminViewProps {
   onZoomPhoto: (url: string) => void;
 }
 
-type AdminTab = 'live' | 'day' | 'month' | 'staff' | 'cust' | 'list' | 'codes';
+type AdminTab = 'live' | 'dups' | 'day' | 'month' | 'staff' | 'cust' | 'list' | 'codes';
 
 const TAB_NAMES: Record<AdminTab, string> = {
   live: 'Trực tiếp',
+  dups: 'Khách trùng',
   day: 'Báo cáo ngày',
   month: 'Theo tháng',
   staff: 'Từng nhân viên',
@@ -102,6 +105,25 @@ export const AdminView: React.FC<AdminViewProps> = ({
       fresh.push(a);
     }
     seenActivity.current = head.id;
+    const dups = fresh.filter(a => a.kind === 'dup');
+    if (dups.length) {
+      raiseAlarm({
+        title: 'NHÂN VIÊN VỪA NHẬP KHÁCH TRÙNG',
+        message: dups.map(a => a.text).join('\n'),
+        matches: dups.flatMap(a => a.matches || []),
+        actions: [
+          { label: 'Đã hiểu', primary: true },
+          { label: 'Xem danh sách khách trùng', onClick: () => setTab('dups') },
+        ],
+      });
+      if (notifyOn && document.visibilityState !== 'visible') {
+        dups.forEach(a => {
+          try {
+            new Notification('Sổ Khách: khách trùng', { body: a.text, tag: a.id, requireInteraction: true });
+          } catch (e) {}
+        });
+      }
+    }
     const important = fresh.filter(a => a.kind === 'report' || a.kind === 'customer');
     if (!important.length) return;
     onToast(important[0].text);
@@ -368,6 +390,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
     return Array.from(new Set([...codes, ...sheet.map(r => r.code)]));
   }, [codes, sheet]);
 
+  const dupGroups = useMemo(() => duplicateGroups(customers, sheet), [customers, sheet]);
+
   // Codes management handlers
   const handleAddCode = async () => {
     const trimmed = newCodeInput.trim();
@@ -506,6 +530,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
             {(Object.keys(TAB_NAMES) as AdminTab[]).map(k => (
               <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}>
                 {TAB_NAMES[k]}
+                {k === 'dups' && dupGroups.length > 0 && (
+                  <span className="tabcount danger">{dupGroups.length}</span>
+                )}
                 {k === 'live' && mode === 'cloud' && (
                   <span className="tabcount">{presence.filter(p => p.role === 'staff').length}</span>
                 )}
@@ -517,6 +544,64 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       <main>
         <SyncStatus mode={mode} live={live} />
+
+        {tab === 'dups' && (
+          <section>
+            <div className="head">
+              <h1>KHÁCH TRÙNG</h1>
+              <p className="sub">
+                {dupGroups.length
+                  ? `${dupGroups.length} nhóm khách có cùng họ tên (và không khác năm sinh) do nhiều lần nhập hoặc nhiều nhân viên cùng nhập`
+                  : 'Chưa phát hiện khách nào bị trùng.'}
+              </p>
+            </div>
+            {dupGroups.map(g => (
+              <div key={g.key} className="panel dupgroup">
+                <div className="row-sb">
+                  <h2>{g.items[0].name}</h2>
+                  <span className="pill" style={{ '--c': 'var(--s-chet)' } as React.CSSProperties}>
+                    {g.items.length} lần · {new Set(g.items.map(i => i.code)).size} nhân viên
+                  </span>
+                </div>
+                <div className="tw flat">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nhân viên</th>
+                        <th>Nguồn</th>
+                        <th>Năm sinh</th>
+                        <th>Nơi ở</th>
+                        <th>Nghề</th>
+                        <th>Thời điểm nhập</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {g.items.map(it => (
+                        <tr
+                          key={it.source + it.id}
+                          className="click"
+                          onClick={() => {
+                            setSelectedStaff(it.code);
+                            setTab('staff');
+                          }}
+                        >
+                          <td>
+                            <b>NV {it.code}</b>
+                          </td>
+                          <td>{it.source === 'customers' ? 'Khách mới' : 'Danh sách khách hàng'}</td>
+                          <td>{it.birth || '—'}</td>
+                          <td>{it.addr || '—'}</td>
+                          <td>{it.job || '—'}</td>
+                          <td>{it.at ? `${hm(it.at)} ${dm(dayKey(it.at))}` : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
 
         {tab === 'live' && (
           <LiveView

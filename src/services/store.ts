@@ -13,6 +13,7 @@ import {
   DKEY,
 } from '../types';
 import { compressImage, toDataURL, dm } from '../utils';
+import { findDuplicates } from './dupcheck';
 
 declare global {
   interface Window {
@@ -390,10 +391,29 @@ class AppStore {
     } else if (col === 'customers') {
       const verb = prev ? 'sửa thông tin khách' : 'đăng khách mới';
       this.pushActivity({ code, kind: 'customer', text: `${who} ${verb}: ${data?.name || '(chưa có tên)'}` });
+      if (!prev) this.checkDup(col, data, code, who);
     } else if (col === 'sheet') {
       const name = data?.name ? `: ${data.name}` : '';
       this.pushActivity({ code, kind: 'sheet', text: `${who} cập nhật danh sách khách hàng${name}` }, SHEET_COALESCE_MS);
+      if (data?.name && data.name !== prev?.name) this.checkDup(col, data, code, who);
     }
+  }
+
+  /** So khách vừa được thêm với dữ liệu đang có (trước khi cập nhật) để báo quản lý khi trùng. */
+  private checkDup(col: 'customers' | 'sheet', data: any, code: string, who: string) {
+    const matches = findDuplicates(data, this.state.customers, this.state.sheet, {
+      code,
+      context: col === 'customers' ? 'customer' : 'sheet',
+      excludeId: data?.id,
+    });
+    if (!matches.length) return;
+    const others = Array.from(new Set(matches.map(m => `NV ${m.code}`))).join(', ');
+    this.pushActivity({
+      code,
+      kind: 'dup',
+      text: `${who} nhập khách TRÙNG: ${data.name} (đã có ở ${others})`,
+      matches,
+    });
   }
 
   private handleDocChange(payload: any) {
@@ -408,7 +428,7 @@ class AppStore {
       // Bỏ qua bản sao realtime của chính thay đổi vừa lưu từ máy này.
       const echo = eventType !== 'DELETE' && prev && JSON.stringify({ id, ...data }) === JSON.stringify(prev);
       if (!echo && !(eventType === 'DELETE' && !prev)) {
-        this.describeChange(col, eventType, data, prev);
+        this.describeChange(col, eventType, data ? { id, ...data } : data, prev);
       }
 
       let list = [...current];

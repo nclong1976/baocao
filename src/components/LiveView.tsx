@@ -23,6 +23,7 @@ const KIND_COLOR: Record<ActivityItem['kind'], string> = {
   delete: 'var(--s-chet)',
   online: 'var(--s-dang_noi)',
   offline: 'var(--s-moi)',
+  dup: 'var(--s-chet)',
 };
 
 const ago = (t: number, now: number): string => {
@@ -213,7 +214,7 @@ export const LiveView: React.FC<LiveViewProps> = ({
           ) : (
             <ul className="feed">
               {activity.map(a => (
-                <li key={a.id} style={{ '--c': KIND_COLOR[a.kind] } as React.CSSProperties}>
+                <li key={a.id} className={a.kind === 'dup' ? 'dup' : undefined} style={{ '--c': KIND_COLOR[a.kind] } as React.CSSProperties}>
                   <i />
                   <div>
                     <div>{a.text}</div>

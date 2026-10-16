@@ -1,12 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Customer, PhotoItem } from '../types';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Customer, PhotoItem, SheetCustomer } from '../types';
 import { store } from '../services/store';
-import { dayKey, fmtT, norm, newId, imgSrc } from '../utils';
+import { dayKey, fmtT, newId, imgSrc } from '../utils';
+import { findDuplicates, DupMatch } from '../services/dupcheck';
+import { raiseAlarm } from '../services/alarm';
 import { CustomerCard } from './CustomerCard';
 
 interface CustomerNewViewProps {
   currentCode: string;
   customers: Customer[];
+  sheet: SheetCustomer[];
   editingCustomer: Customer | null;
   onClearEditing: () => void;
   onToast: (msg: string) => void;
@@ -19,6 +22,7 @@ const MARITAL_OPTIONS = ['Độc thân', 'Đã kết hôn', 'Ly hôn', 'Góa'];
 export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
   currentCode,
   customers,
+  sheet,
   editingCustomer,
   onClearEditing,
   onToast,
@@ -35,8 +39,10 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [removedRefs, setRemovedRefs] = useState<string[]>([]);
-  const [dupWarning, setDupWarning] = useState<string | null>(null);
+  // Khoá (danh sách id khách trùng) mà nhân viên đã xác nhận "người khác, vẫn đăng".
   const [dupConfirmedKey, setDupConfirmedKey] = useState<string | null>(null);
+  const [dupMatches, setDupMatches] = useState<DupMatch[]>([]);
+  const alarmedKey = useRef<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveButtonText, setSaveButtonText] = useState('Đăng lên trang chủ');
   const [isDragging, setIsDragging] = useState(false);
@@ -57,8 +63,8 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
       setNote(editingCustomer.note || '');
       setPhotos((editingCustomer.photos || []).map(ref => ({ kind: 'old', ref })));
       setRemovedRefs([]);
-      setDupWarning(null);
       setDupConfirmedKey(null);
+      alarmedKey.current = null;
       setSaveButtonText('Lưu thay đổi');
     } else {
       resetForm();
@@ -80,11 +86,53 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
     });
     setPhotos([]);
     setRemovedRefs([]);
-    setDupWarning(null);
     setDupConfirmedKey(null);
+    alarmedKey.current = null;
     setSaveButtonText('Đăng lên trang chủ');
     onClearEditing();
   };
+
+  // Tự rà soát trùng khi đang nhập (chờ 0,5 giây sau lần gõ cuối).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDupMatches(
+        findDuplicates({ name, birth, addr, job }, customers, sheet, {
+          code: currentCode,
+          context: 'customer',
+          excludeId: editingCustomer?.id,
+        })
+      );
+    }, 500);
+    return () => clearTimeout(t);
+  }, [name, birth, addr, job, customers, sheet, currentCode, editingCustomer]);
+
+  const dupKey = useMemo(() => dupMatches.map(m => m.source + m.id).sort().join(','), [dupMatches]);
+
+  const alarmFor = (matches: DupMatch[], onSaveAnyway?: () => void) => {
+    raiseAlarm({
+      title: 'CẢNH BÁO KHÁCH TRÙNG',
+      message: `Khách “${name.trim()}” có thể đã tồn tại trong ứng dụng. Kiểm tra kỹ trước khi đăng.`,
+      matches,
+      actions: [
+        { label: 'Đúng là khách đã có, huỷ nhập', primary: true, onClick: () => resetForm() },
+        {
+          label: onSaveAnyway ? 'Người khác, vẫn đăng' : 'Người khác, nhập tiếp',
+          onClick: () => {
+            setDupConfirmedKey(dupKey);
+            onSaveAnyway?.();
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    // Khi sửa khách cũ thì chỉ hiện danh sách, không hú còi.
+    if (editingCustomer || !dupKey || dupKey === alarmedKey.current || dupKey === dupConfirmedKey) return;
+    alarmedKey.current = dupKey;
+    alarmFor(dupMatches);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dupKey]);
 
   const handleAddFiles = (files: FileList | File[]) => {
     const valid = Array.from(files).filter(
@@ -168,21 +216,20 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
       return;
     }
 
-    // Check duplicate
+    // Rà soát lại lần cuối với dữ liệu mới nhất trước khi đăng.
     if (!editingCustomer) {
-      const dupKey = norm(trimmedName) + '|' + trimmedBirth;
-      const dup = customers.find(
-        c => norm(c.name) === norm(trimmedName) && (!trimmedBirth || !c.birth || c.birth === trimmedBirth)
-      );
-
-      if (dup && dupConfirmedKey !== dupKey) {
-        setDupConfirmedKey(dupKey);
-        setDupWarning(
-          `Khách ${dup.name}${dup.birth ? ` (sinh ${dup.birth})` : ''} đã được NV ${dup.code} đăng lúc ${fmtT(
-            dup.createdAt
-          )}. Nếu đúng là người khác, bấm “Vẫn đăng”.`
-        );
-        setSaveButtonText('Vẫn đăng');
+      const latest = findDuplicates({ name: trimmedName, birth: trimmedBirth, addr, job }, customers, sheet, {
+        code: currentCode,
+        context: 'customer',
+      });
+      const latestKey = latest.map(m => m.source + m.id).sort().join(',');
+      if (latest.length && latestKey !== dupConfirmedKey) {
+        setDupMatches(latest);
+        alarmedKey.current = latestKey;
+        alarmFor(latest, () => {
+          setDupConfirmedKey(latestKey);
+          setSaveButtonText('Vẫn đăng');
+        });
         return;
       }
     }
@@ -259,13 +306,11 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
               placeholder="Ví dụ: Đinh Thị Thanh Huyền"
               autoComplete="off"
               value={name}
+              aria-invalid={dupMatches.length > 0}
+              className={dupMatches.length ? 'dupfield' : undefined}
               onChange={e => {
                 setName(e.target.value);
-                if (dupWarning) {
-                  setDupWarning(null);
-                  setDupConfirmedKey(null);
-                  setSaveButtonText(editingCustomer ? 'Lưu thay đổi' : 'Đăng lên trang chủ');
-                }
+                if (saveButtonText === 'Vẫn đăng') setSaveButtonText('Đăng lên trang chủ');
               }}
             />
           </label>
@@ -441,9 +486,26 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
           </div>
         </div>
 
-        {dupWarning && (
-          <div className="warn" role="alert">
-            {dupWarning}
+        {dupMatches.length > 0 && (
+          <div className="dupbox" role="alert">
+            <b>
+              {editingCustomer ? 'Khách này giống' : 'Có thể trùng với'} {dupMatches.length} khách đã có trong ứng dụng
+            </b>
+            <ul>
+              {dupMatches.slice(0, 4).map(m => (
+                <li key={m.source + m.id}>
+                  {m.name}
+                  {m.birth ? ` (${m.birth})` : ''}: NV {m.code},{' '}
+                  {m.source === 'customers' ? 'đăng khách' : 'danh sách khách hàng'}
+                  {m.at ? ` lúc ${fmtT(m.at)}` : ''} · {m.reasons.join(', ')}
+                </li>
+              ))}
+            </ul>
+            {!editingCustomer && (
+              <button type="button" className="linkbtn" onClick={() => alarmFor(dupMatches)}>
+                Xem chi tiết
+              </button>
+            )}
           </div>
         )}
 

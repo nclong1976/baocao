@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { SheetCustomer, SCOLS, STAGES, RANKS, PICK_MAP } from '../types';
+import { Customer, SheetCustomer, SCOLS, STAGES, RANKS, PICK_MAP } from '../types';
 import { store } from '../services/store';
 import { money, newId, norm } from '../utils';
+import { duplicateGroups, findDuplicates } from '../services/dupcheck';
+import { raiseAlarm } from '../services/alarm';
 
 interface SpreadsheetViewProps {
   currentCode?: string | null;
   isAdmin?: boolean;
   sheetData: SheetCustomer[];
+  customers?: Customer[];
   selectedStaffFilter?: string;
   onToast: (msg: string) => void;
 }
@@ -15,6 +18,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   currentCode,
   isAdmin = false,
   sheetData,
+  customers = [],
   selectedStaffFilter = '',
   onToast,
 }) => {
@@ -59,6 +63,41 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
     });
   }, [relevantRows, query, stageFilter]);
 
+  // Các dòng có tên trùng với khách khác trong ứng dụng, tô đỏ để dễ thấy.
+  const dupRowIds = useMemo(() => {
+    const ids = new Set<string>();
+    duplicateGroups(customers, sheetData).forEach(g =>
+      g.items.forEach(it => {
+        if (it.source === 'sheet') ids.add(it.id);
+      })
+    );
+    return ids;
+  }, [customers, sheetData]);
+
+  const checkDuplicate = (row: SheetCustomer) => {
+    if (isAdmin || !row.name) return;
+    const matches = findDuplicates(row, customers, sheetData, {
+      code: row.code,
+      context: 'sheet',
+      excludeId: row.id,
+    });
+    if (!matches.length) return;
+    raiseAlarm({
+      title: 'CẢNH BÁO KHÁCH TRÙNG',
+      message: `Khách “${row.name}” vừa nhập vào danh sách có thể đã tồn tại trong ứng dụng.`,
+      matches,
+      actions: [
+        { label: 'Đã hiểu, kiểm tra lại', primary: true },
+        {
+          label: 'Xoá dòng vừa nhập',
+          onClick: () => {
+            store.remove('sheet', row.id).catch(() => onToast('Chưa xoá được dòng'));
+          },
+        },
+      ],
+    });
+  };
+
   const totalRevenue = useMemo(() => {
     return displayedRows.reduce((sum, r) => sum + (Number(r.revenue) || 0), 0);
   }, [displayedRows]);
@@ -72,12 +111,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
     if (existing) {
       if (!isAdmin && existing.code !== currentCode) return;
       if (existing[key] === value) return;
+      const row = { ...existing, [key]: value, updatedAt: Date.now() };
       try {
-        await store.put('sheet', rowId, {
-          ...existing,
-          [key]: value,
-          updatedAt: Date.now(),
-        });
+        await store.put('sheet', rowId, row);
+        if (key === 'name' && value) checkDuplicate(row);
       } catch (e: any) {
         onToast(e?.message || 'Lỗi khi lưu');
       }
@@ -96,6 +133,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
       };
       try {
         await store.put('sheet', rowId, newRow);
+        if (key === 'name' && value) checkDuplicate(newRow);
       } catch (e: any) {
         onToast(e?.message || 'Lỗi khi lưu');
       }
@@ -257,8 +295,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
           </thead>
           <tbody>
             {displayedRows.map((r, i) => (
-              <tr key={r.id} data-row={r.id}>
-                <td>{i + 1}</td>
+              <tr key={r.id} data-row={r.id} className={dupRowIds.has(r.id) ? 'duprow' : undefined}>
+                <td title={dupRowIds.has(r.id) ? 'Khách này trùng với khách khác trong ứng dụng' : undefined}>
+                  {i + 1}
+                </td>
                 {isAdmin && <td className="nvc">NV {r.code}</td>}
                 {SCOLS.map(c => {
                   const val = r[c.key];

@@ -11,6 +11,7 @@ import { DailyReportView } from './components/DailyReportView';
 import { HomeFeedView } from './components/HomeFeedView';
 import { SpreadsheetView } from './components/SpreadsheetView';
 import { AdminView } from './components/AdminView';
+import { DupAlarm } from './components/DupAlarm';
 
 const STAFF_VIEWS: Record<'moi' | 'bc' | 'home' | 'ds', string> = {
   moi: 'Khách mới',
@@ -129,6 +130,7 @@ export const App: React.FC = () => {
           onZoomPhoto={setLightboxSrc}
         />
         <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+        <DupAlarm />
         <Toast message={toastMsg} />
       </>
     );
@@ -204,6 +206,7 @@ export const App: React.FC = () => {
           <CustomerNewView
             currentCode={currentCode!}
             customers={storeState.customers}
+            sheet={storeState.sheet}
             editingCustomer={editingCustomer}
             onClearEditing={() => setEditingCustomer(null)}
             onToast={showToast}
@@ -235,12 +238,14 @@ export const App: React.FC = () => {
           <SpreadsheetView
             currentCode={currentCode}
             sheetData={storeState.sheet}
+            customers={storeState.customers}
             onToast={showToast}
           />
         )}
       </main>
 
       <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+      <DupAlarm />
       <Toast message={toastMsg} />
     </div>
   );
