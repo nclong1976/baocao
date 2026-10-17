@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Customer } from '../types';
 import { norm } from '../utils';
-import { CustomerCard } from './CustomerCard';
+import { CustomerBankCard } from './CustomerBankCard';
 import { store } from '../services/store';
 
 interface HomeFeedViewProps {
@@ -69,7 +69,7 @@ export const HomeFeedView: React.FC<HomeFeedViewProps> = ({
         </select>
       </div>
 
-      <div className="feed">
+      <div className="feed bcards">
         {filteredCustomers.length === 0 ? (
           <div className="empty">
             {customers.length
@@ -78,7 +78,7 @@ export const HomeFeedView: React.FC<HomeFeedViewProps> = ({
           </div>
         ) : (
           filteredCustomers.map(c => (
-            <CustomerCard
+            <CustomerBankCard
               key={c.id}
               customer={c}
               currentCode={currentCode}

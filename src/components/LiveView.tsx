@@ -212,7 +212,7 @@ export const LiveView: React.FC<LiveViewProps> = ({
                 : 'Chưa có hoạt động mới. Khi nhân viên nộp báo cáo hay đăng khách, mục này tự hiện ngay.'}
             </div>
           ) : (
-            <ul className="feed">
+            <ul className="livefeed">
               {activity.map(a => (
                 <li key={a.id} className={a.kind === 'dup' ? 'dup' : undefined} style={{ '--c': KIND_COLOR[a.kind] } as React.CSSProperties}>
                   <i />

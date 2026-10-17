@@ -7,7 +7,7 @@
 ### Nhân viên
 - **Khách mới:** Nhập thông tin khách hàng, đánh giá tiềm năng (cao/trung bình/thấp), dán hoặc kéo thả ảnh (tối đa 6 ảnh, tự động nén), phát hiện trùng tên và năm sinh, quản lý danh sách khách đã đăng hôm nay (xem, sửa, xoá).
 - **Báo cáo ngày:** Nhập số lượng cào, khách mới (tự động đếm), đang nói chuyện, chơi giúp, vào tiền, khách chết, tổng data nhận, số lượng còn lại, tình trạng data, tổng khách trong tháng. Xem trước nội dung báo cáo và một nút sao chép để gửi qua Zalo/tin nhắn. Lịch sử báo cáo đã lưu.
-- **Trang chủ:** Dòng tin khách hàng mới của cả đội, tìm kiếm theo tên/nghề/địa chỉ/ghi chú, lọc theo nhân viên, xem phóng to ảnh khách hàng trong hộp thoại (lightbox).
+- **Trang chủ:** Khách mới của cả đội hiện thành thẻ kiểu thẻ ngân hàng xếp dọc (nền là ảnh đầu tiên của khách, trên thẻ là tên, nghề, năm sinh, nơi ở, mức tiềm năng, ngày đăng), tìm kiếm theo tên/nghề/địa chỉ/ghi chú, lọc theo nhân viên, xem phóng to ảnh khách hàng trong hộp thoại (lightbox).
 - **Danh sách khách hàng (Bảng tính):** Giao diện bảng tính nhập liệu trực tiếp vào ô và tự động lưu. Các cột: STT, Tên, Nghề nghiệp, Nơi ở, Hôn nhân/Con cái, Kết bạn từ ngày, Tình trạng giai đoạn (menu thẻ màu hoặc phím tắt 1–7), Xếp hạng (phím tắt A–D), Doanh thu (VNĐ - tự động định dạng số tiền), Ghi chú.
 
 ### Lọc khách trùng (tự động)

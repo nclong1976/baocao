@@ -300,6 +300,86 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
 
       <div className="panel">
         <div className="cform">
+          <div
+            className={`fsec photosec ${isDragging ? 'drag' : ''}`}
+            onDragOver={e => {
+              if (Array.from(e.dataTransfer.types || []).includes('Files')) {
+                e.preventDefault();
+                setIsDragging(true);
+              }
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+          >
+            <div className="fsec-h">
+              Hình ảnh <span>{photos.length}/{MAXPH} ảnh · ảnh đầu tiên làm nền thẻ khách</span>
+            </div>
+
+            <div className="photos">
+              {photos.map((p, i) => {
+                const src = p.kind === 'new' ? p.url : imgSrc(p.ref);
+                return (
+                  <div key={i} className={`ph ${p.kind === 'new' ? 'new' : ''}`}>
+                    <img
+                      src={src}
+                      alt={`Ảnh ${i + 1}`}
+                      onClick={() => src && onZoomPhoto(src)}
+                    />
+                    <button
+                      type="button"
+                      className="rm"
+                      aria-label={`Bỏ ảnh ${i + 1}`}
+                      onClick={() => handleRemovePhoto(i)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+
+              {photos.length < MAXPH && (
+                <button
+                  type="button"
+                  className="addph"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <b>+</b>Thêm ảnh
+                </button>
+              )}
+            </div>
+
+            {photos.length < MAXPH && (
+              <div
+                ref={pasteBoxRef}
+                className="pastebox"
+                contentEditable
+                inputMode="none"
+                role="textbox"
+                aria-label="Ô dán ảnh khách"
+                data-ph="Dán ảnh (Ctrl+V), kéo thả vào đây, hoặc nhấn giữ để Dán trên điện thoại"
+                onPaste={handlePaste}
+                onBeforeInput={e => {
+                  if ((e as any).inputType !== 'insertFromPaste') e.preventDefault();
+                }}
+                onInput={() => {
+                  if (pasteBoxRef.current) pasteBoxRef.current.innerHTML = '';
+                }}
+              />
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={e => {
+                if (e.target.files) handleAddFiles(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </div>
+
           <div className="fsec">
             <div className="fsec-h">Thông tin khách</div>
             <div className="fgrid">
@@ -417,85 +497,6 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
             </div>
           </div>
 
-          <div
-            className={`fsec photosec ${isDragging ? 'drag' : ''}`}
-            onDragOver={e => {
-              if (Array.from(e.dataTransfer.types || []).includes('Files')) {
-                e.preventDefault();
-                setIsDragging(true);
-              }
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-          >
-            <div className="fsec-h">
-              Hình ảnh <span>{photos.length}/{MAXPH} ảnh</span>
-            </div>
-
-            <div className="photos">
-              {photos.map((p, i) => {
-                const src = p.kind === 'new' ? p.url : imgSrc(p.ref);
-                return (
-                  <div key={i} className={`ph ${p.kind === 'new' ? 'new' : ''}`}>
-                    <img
-                      src={src}
-                      alt={`Ảnh ${i + 1}`}
-                      onClick={() => src && onZoomPhoto(src)}
-                    />
-                    <button
-                      type="button"
-                      className="rm"
-                      aria-label={`Bỏ ảnh ${i + 1}`}
-                      onClick={() => handleRemovePhoto(i)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              })}
-
-              {photos.length < MAXPH && (
-                <button
-                  type="button"
-                  className="addph"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <b>+</b>Thêm ảnh
-                </button>
-              )}
-            </div>
-
-            {photos.length < MAXPH && (
-              <div
-                ref={pasteBoxRef}
-                className="pastebox"
-                contentEditable
-                inputMode="none"
-                role="textbox"
-                aria-label="Ô dán ảnh khách"
-                data-ph="Dán ảnh (Ctrl+V), kéo thả vào đây, hoặc nhấn giữ để Dán trên điện thoại"
-                onPaste={handlePaste}
-                onBeforeInput={e => {
-                  if ((e as any).inputType !== 'insertFromPaste') e.preventDefault();
-                }}
-                onInput={() => {
-                  if (pasteBoxRef.current) pasteBoxRef.current.innerHTML = '';
-                }}
-              />
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              hidden
-              onChange={e => {
-                if (e.target.files) handleAddFiles(e.target.files);
-                e.target.value = '';
-              }}
-            />
-          </div>
         </div>
 
         {dupMatches.length > 0 && (
