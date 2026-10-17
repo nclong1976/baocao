@@ -20,7 +20,8 @@ export interface Report {
   code: string;
   date: string;
   scraped: number;
-  phanHoi: number;
+  /** Đã bỏ khỏi báo cáo; báo cáo cũ có thể vẫn còn giá trị này. */
+  phanHoi?: number;
   moi: number;
   dangNoi: number;
   choiGiup: number;
@@ -81,7 +82,6 @@ export interface ReportFieldDef {
 
 export const R_FIELDS: [string, string, string?, boolean?][] = [
   ['scraped', 'Số lượng cào hôm nay'],
-  ['phanHoi', 'Khách hàng phản hồi', 'phan_hoi'],
   ['moi', 'Khách mới', 'moi'],
   ['dangNoi', 'Khách đang nói chuyện', 'dang_noi'],
   ['choiGiup', 'Khách chơi giúp', 'choi_giup'],

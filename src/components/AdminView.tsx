@@ -54,7 +54,6 @@ const NKEY = 'sokhach-notify';
 
 const SHORT_NAMES: Record<string, string> = {
   scraped: 'Cào',
-  phanHoi: 'Phản hồi',
   moi: 'Khách mới',
   dangNoi: 'Đang nói',
   choiGiup: 'Chơi giúp',
@@ -208,7 +207,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const dayTotals = useMemo(() => {
     const t: Record<string, number> = {};
-    const numFields = ['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet', 'tongData', 'conLai', 'tongThang'];
+    const numFields = ['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet', 'tongData', 'conLai', 'tongThang'];
     numFields.forEach(k => (t[k] = 0));
     daySubmittedStaff.forEach(c => {
       const r = dayReportsMap[c] as any;
@@ -244,7 +243,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       daySubmittedStaff.forEach(c => {
         const r = dayReportsMap[c];
         out.push(
-          `NV ${c}: cào ${r.scraped}, phản hồi ${r.phanHoi}, khách mới ${r.moi}, vào tiền ${r.vaoTien}, chết ${r.chet}, còn lại ${r.conLai}`
+          `NV ${c}: cào ${r.scraped}, khách mới ${r.moi}, vào tiền ${r.vaoTien}, chết ${r.chet}, còn lại ${r.conLai}`
         );
       });
     }
@@ -276,7 +275,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const monthTotals = useMemo(() => {
     const t: Record<string, number> = {};
-    const numFields = ['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet', 'tongData', 'conLai', 'tongThang'];
+    const numFields = ['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet', 'tongData', 'conLai', 'tongThang'];
     numFields.forEach(k => (t[k] = 0));
     monthRows.forEach(r => {
       numFields.forEach(k => (t[k] += Number((r as any)[k]) || 0));
@@ -314,7 +313,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       .map(c => {
         const rs = monthRows.filter(r => r.code === c);
         const t: Record<string, number> = {};
-        ['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].forEach(k => {
+        ['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].forEach(k => {
           t[k] = rs.reduce((acc, r) => acc + (Number((r as any)[k]) || 0), 0);
         });
         const l = latestReportByStaff[c];
@@ -347,7 +346,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const activeStaffTotals = useMemo(() => {
     const t: Record<string, number> = {};
-    ['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].forEach(k => {
+    ['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].forEach(k => {
       t[k] = activeStaffMonthRows.reduce((acc, r) => acc + (Number((r as any)[k]) || 0), 0);
     });
     return t;
@@ -839,10 +838,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <b>{nf(monthTotals.scraped)}</b>
                 <small>{monthRows.length} báo cáo đã nộp</small>
               </div>
-              <div className="kc" style={{ '--c': 'var(--s-phan_hoi)' } as React.CSSProperties}>
-                <span>Khách phản hồi</span>
-                <b>{nf(monthTotals.phanHoi)}</b>
-              </div>
               <div className="kc" style={{ '--c': 'var(--s-moi)' } as React.CSSProperties}>
                 <span>Khách mới</span>
                 <b>{nf(monthTotals.moi)}</b>
@@ -901,7 +896,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <tr>
                     <th>Nhân viên</th>
                     <th className="num">Ngày đã nộp</th>
-                    {['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].map(k => {
+                    {['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].map(k => {
                       const color = R_FIELDS.find(f => f[0] === k)?.[2];
                       return (
                         <th
@@ -935,7 +930,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       <td className="num">
                         {p.submittedCount}/{elapsedDays}
                       </td>
-                      {['scraped', 'phanHoi', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].map(k => (
+                      {['scraped', 'moi', 'dangNoi', 'choiGiup', 'vaoTien', 'chet'].map(k => (
                         <td key={k} className="num">
                           {nf(p.t[k])}
                         </td>
@@ -994,10 +989,6 @@ export const AdminView: React.FC<AdminViewProps> = ({
               <div className="kc">
                 <span>Số lượng cào</span>
                 <b>{nf(activeStaffTotals.scraped)}</b>
-              </div>
-              <div className="kc" style={{ '--c': 'var(--s-phan_hoi)' } as React.CSSProperties}>
-                <span>Phản hồi</span>
-                <b>{nf(activeStaffTotals.phanHoi)}</b>
               </div>
               <div className="kc" style={{ '--c': 'var(--s-moi)' } as React.CSSProperties}>
                 <span>Khách mới</span>
