@@ -58,9 +58,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ codes, onLogin, onEnterAdm
             Vào trang báo cáo
           </button>
         </form>
-        <div className="codes">
-          Mã mẫu: {codes.join(', ')} · Quản lý: 0
-        </div>
       </div>
     </div>
   );

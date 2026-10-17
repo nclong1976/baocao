@@ -286,13 +286,6 @@ textarea {
   margin-bottom: 8px;
 }
 
-.codes {
-  margin-top: 16px;
-  font-size: 12.5px;
-  color: var(--muted);
-  text-align: center;
-}
-
 /* Khung app */
 .top {
   position: sticky;
