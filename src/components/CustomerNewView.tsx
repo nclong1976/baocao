@@ -299,9 +299,14 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
       </div>
 
       <div className="panel">
-        <div className="form">
-          <label className="full">
-            Tên
+        <div className="cform">
+          <div className="fsec">
+            <div className="fsec-h">Thông tin khách</div>
+            <div className="fgrid">
+              <label className="c-name">
+                <span>
+                  Họ tên <em>*</em>
+                </span>
             <input
               placeholder="Ví dụ: Đinh Thị Thanh Huyền"
               autoComplete="off"
@@ -313,64 +318,107 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
                 if (saveButtonText === 'Vẫn đăng') setSaveButtonText('Đăng lên trang chủ');
               }}
             />
-          </label>
-
-          <label>
-            Năm sinh
-            <input
-              inputMode="numeric"
-              maxLength={4}
-              placeholder="1990"
-              value={birth}
-              onChange={e => setBirth(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Nghề nghiệp
-            <input
-              placeholder="Ví dụ: Giáo viên"
-              value={job}
-              onChange={e => setJob(e.target.value)}
-            />
-          </label>
-
-          <label className="full">
-            Địa chỉ
-            <input
-              placeholder="Phường/xã, quận/huyện, tỉnh"
-              value={addr}
-              onChange={e => setAddr(e.target.value)}
-            />
-          </label>
-
-          <div className="field full">
-            Tình trạng hôn nhân
-            <div className="chips">
-              {MARITAL_OPTIONS.map(v => (
-                <button
-                  key={v}
-                  type="button"
-                  className={`chip ${marital === v ? 'on' : ''}`}
-                  onClick={() => setMarital(marital === v ? '' : v)}
-                >
-                  {v}
-                </button>
-              ))}
+              </label>
+              <label className="c-birth">
+                Năm sinh
+                <input
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="1990"
+                  value={birth}
+                  onChange={e => setBirth(e.target.value)}
+                />
+              </label>
+              <label className="c-job">
+                Nghề nghiệp
+                <input placeholder="Ví dụ: Giáo viên" value={job} onChange={e => setJob(e.target.value)} />
+              </label>
+              <label className="c-addr">
+                Địa chỉ
+                <input
+                  placeholder="Phường/xã, quận/huyện, tỉnh"
+                  value={addr}
+                  onChange={e => setAddr(e.target.value)}
+                />
+              </label>
             </div>
           </div>
 
-          <label className="full">
-            Con cái
-            <input
-              placeholder="Ví dụ: 2 con, bé lớn 8 tuổi"
-              value={kids}
-              onChange={e => setKids(e.target.value)}
-            />
-          </label>
+          <div className="fsec">
+            <div className="fsec-h">Gia đình</div>
+            <div className="fgrid">
+              <div className="field c-marital">
+                Hôn nhân
+                <div className="chips">
+                  {MARITAL_OPTIONS.map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`chip sm ${marital === v ? 'on' : ''}`}
+                      onClick={() => setMarital(marital === v ? '' : v)}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="c-kids">
+                Con cái
+                <input
+                  placeholder="Ví dụ: 2 con"
+                  value={kids}
+                  onChange={e => setKids(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="fsec">
+            <div className="fsec-h">Đánh giá</div>
+            <div className="fgrid">
+              <div className="field c-full">
+                Mức tiềm năng
+                <div className="chips">
+                <button
+                  type="button"
+                  className={`chip ${rating === 'cao' ? 'on' : ''}`}
+                  style={{ '--c': 'var(--s-vao_tien)' } as React.CSSProperties}
+                  onClick={() => setRating(rating === 'cao' ? '' : 'cao')}
+                >
+                  Tiềm năng cao
+                </button>
+                <button
+                  type="button"
+                  className={`chip ${rating === 'tb' ? 'on' : ''}`}
+                  style={{ '--c': 'var(--s-dang_noi)' } as React.CSSProperties}
+                  onClick={() => setRating(rating === 'tb' ? '' : 'tb')}
+                >
+                  Trung bình
+                </button>
+                <button
+                  type="button"
+                  className={`chip ${rating === 'thap' ? 'on' : ''}`}
+                  style={{ '--c': 'var(--s-moi)' } as React.CSSProperties}
+                  onClick={() => setRating(rating === 'thap' ? '' : 'thap')}
+                >
+                  Thấp
+                </button>
+                </div>
+              </div>
+              <label className="c-full">
+                Nhận xét
+                <textarea
+                  rows={3}
+                  placeholder="Tính cách, nhu cầu, cách tiếp cận…"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
 
           <div
-            className={`field full ${isDragging ? 'drag' : ''}`}
+            className={`fsec photosec ${isDragging ? 'drag' : ''}`}
             onDragOver={e => {
               if (Array.from(e.dataTransfer.types || []).includes('Files')) {
                 e.preventDefault();
@@ -380,9 +428,9 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
           >
-            <span>
-              Hình ảnh khách <span className="sub" style={{ display: 'inline' }}>({photos.length}/{MAXPH} ảnh)</span>
-            </span>
+            <div className="fsec-h">
+              Hình ảnh <span>{photos.length}/{MAXPH} ảnh</span>
+            </div>
 
             <div className="photos">
               {photos.map((p, i) => {
@@ -425,7 +473,7 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
                 inputMode="none"
                 role="textbox"
                 aria-label="Ô dán ảnh khách"
-                data-ph="Dán ảnh vào đây: Ctrl+V trên máy tính, hoặc nhấn giữ vào ô này rồi chọn Dán trên điện thoại"
+                data-ph="Dán ảnh (Ctrl+V), kéo thả vào đây, hoặc nhấn giữ để Dán trên điện thoại"
                 onPaste={handlePaste}
                 onBeforeInput={e => {
                   if ((e as any).inputType !== 'insertFromPaste') e.preventDefault();
@@ -446,42 +494,6 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
                 if (e.target.files) handleAddFiles(e.target.files);
                 e.target.value = '';
               }}
-            />
-          </div>
-
-          <div className="field full">
-            Đánh giá khách
-            <div className="chips">
-              <button
-                type="button"
-                className={`chip ${rating === 'cao' ? 'on' : ''}`}
-                style={{ '--c': 'var(--s-vao_tien)' } as React.CSSProperties}
-                onClick={() => setRating(rating === 'cao' ? '' : 'cao')}
-              >
-                Tiềm năng cao
-              </button>
-              <button
-                type="button"
-                className={`chip ${rating === 'tb' ? 'on' : ''}`}
-                style={{ '--c': 'var(--s-dang_noi)' } as React.CSSProperties}
-                onClick={() => setRating(rating === 'tb' ? '' : 'tb')}
-              >
-                Trung bình
-              </button>
-              <button
-                type="button"
-                className={`chip ${rating === 'thap' ? 'on' : ''}`}
-                style={{ '--c': 'var(--s-moi)' } as React.CSSProperties}
-                onClick={() => setRating(rating === 'thap' ? '' : 'thap')}
-              >
-                Thấp
-              </button>
-            </div>
-            <textarea
-              rows={3}
-              placeholder="Nhận xét thêm: tính cách, nhu cầu, cách tiếp cận…"
-              value={note}
-              onChange={e => setNote(e.target.value)}
             />
           </div>
         </div>
@@ -509,7 +521,10 @@ export const CustomerNewView: React.FC<CustomerNewViewProps> = ({
           </div>
         )}
 
-        <div className="row-e">
+        <div className="row-e cform-actions">
+          <span className="sub">
+            <em>*</em> bắt buộc
+          </span>
           {editingCustomer && (
             <button type="button" className="btn ghost" onClick={resetForm}>
               Huỷ sửa
