@@ -220,10 +220,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   };
 
   const colWidths = useMemo(() => {
-    const list = [56];
-    if (isAdmin) list.push(70);
+    const list = [36];
+    if (isAdmin) list.push(54);
     SCOLS.forEach(c => list.push(c.width));
-    list.push(44); // delete button
+    list.push(30); // delete button
     return list;
   }, [isAdmin]);
 
@@ -277,10 +277,10 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
       </div>
 
       <div className="sw" ref={tableContainerRef}>
-        <table className="sheet" style={{ width: `${totalTableWidth}px` }}>
+        <table className="sheet" style={{ minWidth: `${Math.round(totalTableWidth * 0.7)}px` }}>
           <colgroup>
             {colWidths.map((w, idx) => (
-              <col key={idx} style={{ width: `${w}px` }} />
+              <col key={idx} style={{ width: `${(w / totalTableWidth) * 100}%` }} />
             ))}
           </colgroup>
           <thead>

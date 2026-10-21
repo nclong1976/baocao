@@ -123,15 +123,15 @@ export interface SheetColumnDef {
 }
 
 export const SCOLS: SheetColumnDef[] = [
-  { key: 'name', label: 'Tên khách hàng', width: 190 },
-  { key: 'job', label: 'Nghề nghiệp', width: 150 },
-  { key: 'addr', label: 'Nơi ở', width: 170 },
-  { key: 'family', label: 'Hôn nhân / Con cái', width: 170 },
-  { key: 'since', label: 'Kết bạn từ ngày', width: 150, type: 'date' },
-  { key: 'stage', label: 'Tình trạng giai đoạn', width: 200, type: 'pick' },
-  { key: 'rank', label: 'Xếp hạng', width: 180, type: 'pick' },
-  { key: 'revenue', label: 'Doanh thu (VNĐ)', width: 150, type: 'money' },
-  { key: 'note', label: 'Ghi chú', width: 260 },
+  { key: 'name', label: 'Tên khách hàng', width: 125 },
+  { key: 'job', label: 'Nghề nghiệp', width: 105 },
+  { key: 'addr', label: 'Nơi ở', width: 115 },
+  { key: 'family', label: 'Hôn nhân / Con cái', width: 110 },
+  { key: 'since', label: 'Kết bạn từ ngày', width: 100, type: 'date' },
+  { key: 'stage', label: 'Tình trạng giai đoạn', width: 130, type: 'pick' },
+  { key: 'rank', label: 'Xếp hạng', width: 100, type: 'pick' },
+  { key: 'revenue', label: 'Doanh thu (VNĐ)', width: 95, type: 'money' },
+  { key: 'note', label: 'Ghi chú', width: 140 },
 ];
 
 export type LiveStatus = 'connecting' | 'live' | 'offline';
