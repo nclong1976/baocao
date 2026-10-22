@@ -139,7 +139,9 @@ export const App: React.FC = () => {
 
   // Staff View
   return (
-    <div id="app" className={activeTab === 'ds' ? 'wide' : ''}>
+    <div id="app" className={
+        activeTab === 'ds' || (activeTab === 'bc' && storeState.machines[currentCode!] === '2') ? 'wide' : ''
+      }>
       <header className="top">
         <div className="topin">
           <div className="row-sb">
@@ -220,6 +222,7 @@ export const App: React.FC = () => {
             currentCode={currentCode!}
             reports={storeState.reports}
             customers={storeState.customers}
+            sheet={storeState.sheet}
             machine={storeState.machines[currentCode!] || '1'}
             onToast={showToast}
           />

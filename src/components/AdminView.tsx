@@ -254,9 +254,9 @@ export const AdminView: React.FC<AdminViewProps> = ({
     }
     const m2Done = daySubmittedStaff.filter(c => machineOf(c) === '2');
     if (m2Done.length) {
-      out.push('', 'MÁY 2, khách đang nói chuyện:');
+      out.push('', 'MÁY 2, danh sách khách hàng:');
       m2Done.forEach(c => {
-        const list = dayReportsMap[c].noiChuyen || [];
+        const list = dayReportsMap[c].dsKhach || [];
         out.push(`NV ${c}: ${list.length} khách${list.length ? ' - ' + list.map(t => t.name).join(', ') : ''}`);
       });
     }
@@ -835,15 +835,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
               <div className="panel" style={{ marginTop: '14px' }}>
                 <div className="mhead">
                   <span className="mtag m2">Máy 2</span>
-                  <h2>Khách đang nói chuyện</h2>
+                  <h2>Danh sách khách hàng</h2>
                   <span className="sub">
-                    {m2Codes.reduce((n, c) => n + (dayReportsMap[c]?.noiChuyen?.length || 0), 0)} khách
+                    {m2Codes.reduce((n, c) => n + (dayReportsMap[c]?.dsKhach?.length || 0), 0)} khách
                   </span>
                 </div>
                 <div className="m2list">
                   {m2Codes.map(c => {
                     const r = dayReportsMap[c];
-                    const list = r?.noiChuyen || [];
+                    const list = r?.dsKhach || [];
                     return (
                       <div key={c} className="m2staff">
                         <div className="row-sb">
@@ -855,10 +855,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         {list.length > 0 && (
                           <ol className="talks">
                             {list.map((t, i) => (
-                              <li key={t.name} className="ro">
+                              <li key={i} className="ro">
                                 <span className="tn">{i + 1}</span>
                                 <b>{t.name}</b>
-                                <span className="sub">{t.note || ''}</span>
+                                <span className="sub">{[t.stage, t.rank].filter(Boolean).join(', ')}</span>
                               </li>
                             ))}
                           </ol>

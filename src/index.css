@@ -503,18 +503,19 @@ main {
   font-size: 13px;
 }
 
+/* Danh sách khách (chỉ xem) của Máy 2 trên trang Quản lý */
 .talks {
   list-style: none;
-  margin: 0 0 12px;
+  margin: 0;
   padding: 0;
 }
 
 .talks li {
   display: grid;
-  grid-template-columns: 24px minmax(90px, 180px) 1fr 32px;
+  grid-template-columns: 24px minmax(90px, 200px) 1fr;
   align-items: center;
   gap: 10px;
-  padding: 8px 0 8px 12px;
+  padding: 7px 0 7px 12px;
   border-bottom: 1px solid var(--line);
   border-left: 3px solid var(--s-dang_noi);
 }
@@ -531,23 +532,6 @@ main {
   white-space: nowrap;
 }
 
-.talks input {
-  font-size: 14px;
-}
-
-.talks .rm {
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font-size: 18px;
-  cursor: pointer;
-  height: 32px;
-}
-
-.talks li.ro {
-  grid-template-columns: 24px minmax(90px, 180px) 1fr;
-}
-
 .m2staff + .m2staff {
   margin-top: 12px;
   padding-top: 12px;
@@ -555,38 +539,33 @@ main {
 }
 
 .m2staff .talks {
-  margin: 6px 0 0;
+  margin-top: 6px;
 }
 
-.talkadd {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr auto;
-  gap: 8px;
-  margin-bottom: 14px;
+.dsstat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dsstat span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.mhead-sub {
+  margin-bottom: 8px;
 }
 
 @media (max-width: 560px) {
   .talks li {
-    grid-template-columns: 20px 1fr 32px;
-  }
-  .talks input {
-    grid-column: 2 / 3;
-  }
-  .talks .rm {
-    grid-row: 1;
-    grid-column: 3;
-  }
-  .talks li.ro {
     grid-template-columns: 20px 1fr;
   }
-  .talks li.ro .sub {
+  .talks li .sub {
     grid-column: 2;
-  }
-  .talkadd {
-    grid-template-columns: 1fr auto;
-  }
-  .talkadd input:first-child {
-    grid-column: 1 / -1;
   }
 }
 

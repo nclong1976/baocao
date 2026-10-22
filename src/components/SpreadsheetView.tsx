@@ -11,6 +11,8 @@ interface SpreadsheetViewProps {
   sheetData: SheetCustomer[];
   customers?: Customer[];
   selectedStaffFilter?: string;
+  /** Nhúng trong trang khác (Báo cáo ngày Máy 2): ẩn tiêu đề riêng của bảng. */
+  embedded?: boolean;
   onToast: (msg: string) => void;
 }
 
@@ -20,6 +22,7 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
   sheetData,
   customers = [],
   selectedStaffFilter = '',
+  embedded = false,
   onToast,
 }) => {
   const [query, setQuery] = useState('');
@@ -237,8 +240,8 @@ export const SpreadsheetView: React.FC<SpreadsheetViewProps> = ({
 
   return (
     <div>
-      <div className="head">
-        <h1>Danh sách khách hàng</h1>
+      <div className={embedded ? 'mhead-sub' : 'head'}>
+        {!embedded && <h1>Danh sách khách hàng</h1>}
         <p className="sub">
           {isAdmin
             ? `${sheetData.length} khách do nhân viên nhập${

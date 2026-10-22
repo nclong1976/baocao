@@ -31,16 +31,17 @@ export interface Report {
   conLai: number;
   tinhTrang: string;
   tongThang: number;
-  /** Máy 2: danh sách khách đang nói chuyện. `dangNoi` lưu số dòng của danh sách này. */
-  noiChuyen?: TalkItem[];
+  /** Máy 2: ảnh chụp Danh sách khách hàng của nhân viên lúc lưu báo cáo. `dangNoi` lưu số khách trong đó. */
+  dsKhach?: DsItem[];
   /** Máy mà nhân viên báo cáo lúc lưu. */
   may?: Machine;
   updatedAt: number;
 }
 
-export interface TalkItem {
+export interface DsItem {
   name: string;
-  note?: string;
+  stage?: string;
+  rank?: string;
 }
 
 export interface SheetCustomer {
