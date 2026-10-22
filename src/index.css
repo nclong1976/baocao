@@ -467,6 +467,108 @@ main {
   grid-template-columns: 1fr;
 }
 
+/* Báo cáo ngày: Máy 1 / Máy 2 */
+.mhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.mhead h2 {
+  margin: 0;
+}
+
+.mhead .sub {
+  margin-left: auto;
+}
+
+.mtag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  white-space: nowrap;
+}
+
+.mtag.m2 {
+  background: var(--s-dang_noi);
+}
+
+.head h1 .mtag {
+  vertical-align: middle;
+  margin-left: 6px;
+  font-size: 13px;
+}
+
+/* Danh sách khách (chỉ xem) của Máy 2 trên trang Quản lý */
+.talks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.talks li {
+  display: grid;
+  grid-template-columns: 24px minmax(90px, 200px) 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0 7px 12px;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--s-dang_noi);
+}
+
+.talks .tn {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.talks b {
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m2staff + .m2staff {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.m2staff .talks {
+  margin-top: 6px;
+}
+
+.dsstat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.dsstat span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 13px;
+}
+
+.mhead-sub {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 560px) {
+  .talks li {
+    grid-template-columns: 20px 1fr;
+  }
+  .talks li .sub {
+    grid-column: 2;
+  }
+}
+
 .rtext {
   font-size: 14px;
   line-height: 1.6;
@@ -921,6 +1023,32 @@ th.c {
   height: 3px;
   border-radius: 2px;
   background: var(--c);
+}
+
+.mseg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.codechip .mseg button {
+  border-radius: 0;
+  min-width: 0;
+  height: 24px;
+  padding: 0 9px;
+  font-size: 12px;
+  font-weight: 600;
+  background: none;
+}
+
+.codechip .mseg button.on {
+  color: #fff;
+  background: var(--accent);
+}
+
+.codechip .mseg button.on.m2 {
+  background: var(--s-dang_noi);
 }
 
 .codes-list {

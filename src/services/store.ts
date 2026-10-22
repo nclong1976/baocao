@@ -9,6 +9,8 @@ import {
   ActivityItem,
   DEFAULT_CODES,
   SKEY,
+  MKEY,
+  Machine,
   LKEY,
   DKEY,
 } from '../types';
@@ -29,6 +31,8 @@ export interface StoreState {
   mode: StorageMode;
   live: LiveStatus;
   codes: string[];
+  /** Máy được gán cho từng mã nhân viên; mã chưa gán mặc định là Máy 1. */
+  machines: Record<string, Machine>;
   customers: Customer[];
   reports: Report[];
   sheet: SheetCustomer[];
@@ -100,6 +104,7 @@ class AppStore {
     mode: 'loading',
     live: 'connecting',
     codes: [...DEFAULT_CODES],
+    machines: {},
     customers: [],
     reports: [],
     sheet: [],
@@ -171,6 +176,13 @@ class AppStore {
     } catch (e) {
       console.warn('Failed to load local codes', e);
     }
+
+    try {
+      const m = JSON.parse(localStorage.getItem(MKEY) || 'null');
+      if (m && typeof m === 'object') this.state.machines = m;
+    } catch (e) {
+      console.warn('Failed to load local machines', e);
+    }
   }
 
   private saveLocal() {
@@ -231,6 +243,9 @@ class AppStore {
     if (sheetRes.data) patch.sheet = sheetRes.data.map(d => ({ id: d.id, ...d.data }));
     if (staffRes.data && Array.isArray(staffRes.data.data?.codes) && staffRes.data.data.codes.length) {
       patch.codes = staffRes.data.data.codes.map(String);
+    }
+    if (staffRes.data?.data?.machines && typeof staffRes.data.data.machines === 'object') {
+      patch.machines = staffRes.data.data.machines;
     }
     this.setState(patch);
   }
@@ -386,7 +401,7 @@ class AppStore {
       this.pushActivity({
         code,
         kind: 'report',
-        text: `${who} ${verb} báo cáo ngày ${dm(data?.date || '')}: cào ${data?.scraped ?? 0}, vào tiền ${data?.vaoTien ?? 0}`,
+        text: `${who} ${verb} báo cáo ngày ${dm(data?.date || '')}: ${data?.may === '2' ? `Máy 2, đang nói chuyện ${data?.dangNoi ?? 0}` : `cào ${data?.scraped ?? 0}, khách mới ${data?.moi ?? 0}`}`,
       });
     } else if (col === 'customers') {
       const verb = prev ? 'sửa thông tin khách' : 'đăng khách mới';
@@ -445,6 +460,9 @@ class AppStore {
     } else if (col === 'settings' && id === 'staff') {
       if (data && Array.isArray(data.codes) && data.codes.length) {
         this.setState({ codes: data.codes.map(String), lastSync: Date.now() });
+      }
+      if (data?.machines && typeof data.machines === 'object') {
+        this.setState({ machines: data.machines });
       }
     }
   }
@@ -508,24 +526,29 @@ class AppStore {
     }
   }
 
-  public async saveStaffCodes(list: string[]): Promise<boolean> {
+  public async saveStaffCodes(list: string[], machines: Record<string, Machine> = this.state.machines): Promise<boolean> {
     if (this.sb) {
       const { error } = await this.sb.from('docs').upsert({
         collection: 'settings',
         id: 'staff',
-        data: { codes: list, updatedAt: Date.now() },
+        data: { codes: list, machines, updatedAt: Date.now() },
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
-      this.setState({ codes: list });
+      this.setState({ codes: list, machines });
       return true;
     } else {
       try {
         localStorage.setItem(SKEY, JSON.stringify(list));
+        localStorage.setItem(MKEY, JSON.stringify(machines));
       } catch (e) {}
-      this.setState({ codes: list });
+      this.setState({ codes: list, machines });
       return true;
     }
+  }
+
+  public async setStaffMachine(code: string, machine: Machine): Promise<boolean> {
+    return this.saveStaffCodes(this.state.codes, { ...this.state.machines, [code]: machine });
   }
 }
 

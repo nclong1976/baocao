@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Customer, Report, SheetCustomer, R_FIELDS, DSTAT, STAGES, ActivityItem, LiveStatus, PresenceEntry, StorageMode } from '../types';
+import { Customer, Report, SheetCustomer, Machine, R_FIELDS, DSTAT, STAGES, ActivityItem, LiveStatus, PresenceEntry, StorageMode } from '../types';
 import { BrandMark } from './BrandMark';
 import { SyncStatus } from './SyncStatus';
 import { CustomerCard } from './CustomerCard';
@@ -24,6 +24,7 @@ import {
 
 interface AdminViewProps {
   codes: string[];
+  machines: Record<string, Machine>;
   customers: Customer[];
   reports: Report[];
   sheet: SheetCustomer[];
@@ -67,6 +68,7 @@ const SHORT_NAMES: Record<string, string> = {
 
 export const AdminView: React.FC<AdminViewProps> = ({
   codes,
+  machines,
   customers,
   reports,
   sheet,
@@ -197,6 +199,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
     return map;
   }, [reports, selectedDate, codes]);
 
+  const machineOf = (c: string): Machine => machines[c] || '1';
+  const m1Codes = useMemo(() => codes.filter(c => (machines[c] || '1') === '1'), [codes, machines]);
+  const m2Codes = useMemo(() => codes.filter(c => machines[c] === '2'), [codes, machines]);
+
   const daySubmittedStaff = useMemo(() => {
     return codes.filter(c => !!dayReportsMap[c]);
   }, [codes, dayReportsMap]);
@@ -238,20 +244,27 @@ export const AdminView: React.FC<AdminViewProps> = ({
         out.push(`- ${label} : ${dayTotals[k] || 0}`);
       }
     });
-    if (daySubmittedStaff.length) {
-      out.push('', 'Từng nhân viên:');
-      daySubmittedStaff.forEach(c => {
+    const m1Done = daySubmittedStaff.filter(c => machineOf(c) === '1');
+    if (m1Done.length) {
+      out.push('', 'MÁY 1, từng nhân viên:');
+      m1Done.forEach(c => {
         const r = dayReportsMap[c];
-        out.push(
-          `NV ${c}: cào ${r.scraped}, khách mới ${r.moi}, vào tiền ${r.vaoTien}, chết ${r.chet}, còn lại ${r.conLai}`
-        );
+        out.push(`NV ${c}: cào ${r.scraped}, khách mới ${r.moi}, data nhận ${r.tongData}, còn lại ${r.conLai}`);
+      });
+    }
+    const m2Done = daySubmittedStaff.filter(c => machineOf(c) === '2');
+    if (m2Done.length) {
+      out.push('', 'MÁY 2, danh sách khách hàng:');
+      m2Done.forEach(c => {
+        const list = dayReportsMap[c].dsKhach || [];
+        out.push(`NV ${c}: ${list.length} khách${list.length ? ' - ' + list.map(t => t.name).join(', ') : ''}`);
       });
     }
     if (dayMissingStaff.length) {
       out.push('', 'Chưa nộp: ' + dayMissingStaff.map(c => 'NV ' + c).join(', '));
     }
     return out.join('\n');
-  }, [selectedDate, daySubmittedStaff, codes.length, dayStatusCounts, dayTotals, dayReportsMap, dayMissingStaff]);
+  }, [selectedDate, daySubmittedStaff, codes.length, dayStatusCounts, dayTotals, dayReportsMap, dayMissingStaff, machines]);
 
   const handleCopyDayText = async () => {
     try {
@@ -412,6 +425,16 @@ export const AdminView: React.FC<AdminViewProps> = ({
       onToast('Đã thêm mã ' + trimmed);
     } catch (e: any) {
       onToast(e?.message || 'Lỗi khi thêm mã');
+    }
+  };
+
+  const handleSetMachine = async (c: string, m: Machine) => {
+    if ((machines[c] || '1') === m) return;
+    try {
+      await store.setStaffMachine(c, m);
+      onToast(`NV ${c} báo cáo ở Máy ${m}`);
+    } catch (e: any) {
+      onToast(e?.message || 'Lỗi khi đổi máy');
     }
   };
 
@@ -663,7 +686,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       setTab('staff');
                     }}
                   >
-                    NV {c}, nộp {hm(dayReportsMap[c].updatedAt)}
+                    NV {c} (Máy {machineOf(c)}), nộp {hm(dayReportsMap[c].updatedAt)}
                   </button>
                 ))}
                 {dayMissingStaff.map(c => (
@@ -677,7 +700,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       setTab('staff');
                     }}
                   >
-                    NV {c} chưa nộp
+                    NV {c} (Máy {machineOf(c)}) chưa nộp
                   </button>
                 ))}
               </div>
@@ -733,7 +756,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {codes.map(c => {
+                  {m1Codes.map(c => {
                     const r = dayReportsMap[c];
                     const postedCount = customers.filter(x => x.code === c && x.day === selectedDate).length;
                     if (r) {
@@ -807,6 +830,45 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </tfoot>
               </table>
             </div>
+
+            {m2Codes.length > 0 && (
+              <div className="panel" style={{ marginTop: '14px' }}>
+                <div className="mhead">
+                  <span className="mtag m2">Máy 2</span>
+                  <h2>Danh sách khách hàng</h2>
+                  <span className="sub">
+                    {m2Codes.reduce((n, c) => n + (dayReportsMap[c]?.dsKhach?.length || 0), 0)} khách
+                  </span>
+                </div>
+                <div className="m2list">
+                  {m2Codes.map(c => {
+                    const r = dayReportsMap[c];
+                    const list = r?.dsKhach || [];
+                    return (
+                      <div key={c} className="m2staff">
+                        <div className="row-sb">
+                          <b>NV {c}</b>
+                          <span className="sub">
+                            {r ? `${list.length} khách, nộp ${hm(r.updatedAt)}` : 'Chưa nộp báo cáo'}
+                          </span>
+                        </div>
+                        {list.length > 0 && (
+                          <ol className="talks">
+                            {list.map((t, i) => (
+                              <li key={i} className="ro">
+                                <span className="tn">{i + 1}</span>
+                                <b>{t.name}</b>
+                                <span className="sub">{[t.stage, t.rank].filter(Boolean).join(', ')}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -1252,7 +1314,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
             <div className="head">
               <h1>Mã nhân viên</h1>
               <p className="sub">
-                Chỉ những mã trong danh sách này mới đăng nhập được vào trang báo cáo.
+                Chỉ những mã trong danh sách này mới đăng nhập được vào trang báo cáo. Chọn Máy 1 hoặc Máy 2 cho
+                từng mã: nhân viên chỉ thấy mục báo cáo ngày của máy được gán.
               </p>
             </div>
 
@@ -1261,6 +1324,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 {codes.map(c => (
                   <span key={c} className="codechip">
                     NV {c}
+                    <span className="mseg" role="group" aria-label={`Máy của NV ${c}`}>
+                      {(['1', '2'] as Machine[]).map(m => (
+                        <button
+                          key={m}
+                          type="button"
+                          className={(machines[c] || '1') === m ? `on m${m}` : ''}
+                          aria-pressed={(machines[c] || '1') === m}
+                          onClick={() => handleSetMachine(c, m)}
+                        >
+                          Máy {m}
+                        </button>
+                      ))}
+                    </span>
                     <button
                       type="button"
                       aria-label={`Xoá mã ${c}`}

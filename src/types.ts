@@ -31,7 +31,17 @@ export interface Report {
   conLai: number;
   tinhTrang: string;
   tongThang: number;
+  /** Máy 2: ảnh chụp Danh sách khách hàng của nhân viên lúc lưu báo cáo. `dangNoi` lưu số khách trong đó. */
+  dsKhach?: DsItem[];
+  /** Máy mà nhân viên báo cáo lúc lưu. */
+  may?: Machine;
   updatedAt: number;
+}
+
+export interface DsItem {
+  name: string;
+  stage?: string;
+  rank?: string;
 }
 
 export interface SheetCustomer {
@@ -62,6 +72,10 @@ export interface PhotoItem {
 export const DEFAULT_CODES = ['7', '6', '8', '1', '503', '11', '4'];
 export const ADMIN_KEY = '__quanly__';
 export const SKEY = 'sokhach-codes';
+export const MKEY = 'sokhach-machines';
+
+/** Bộ phận báo cáo của nhân viên: Máy 1 (số liệu data) hoặc Máy 2 (khách đang nói chuyện). */
+export type Machine = '1' | '2';
 export const CKEY = 'sokhach-code';
 export const LKEY = 'sokhach-local-v2';
 
@@ -87,6 +101,16 @@ export const R_FIELDS: [string, string, string?, boolean?][] = [
   ['choiGiup', 'Khách chơi giúp', 'choi_giup'],
   ['vaoTien', 'Khách vào tiền', 'vao_tien'],
   ['chet', 'Khách chết', 'chet'],
+  ['tongData', 'Tổng data nhận'],
+  ['conLai', 'Số lượng còn lại'],
+  ['tinhTrang', 'Tình trạng data', '', true],
+  ['tongThang', 'Tổng khách trong tháng'],
+];
+
+/** Các trường của Máy 1 trong báo cáo ngày. */
+export const M1_FIELDS: [string, string, string?, boolean?][] = [
+  ['scraped', 'Số lượng cào hôm nay'],
+  ['moi', 'Khách mới', 'moi'],
   ['tongData', 'Tổng data nhận'],
   ['conLai', 'Số lượng còn lại'],
   ['tinhTrang', 'Tình trạng data', '', true],

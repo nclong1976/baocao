@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Customer, Report, R_FIELDS, DSTAT } from '../types';
+import { Customer, Report, SheetCustomer, M1_FIELDS, DSTAT, DsItem, Machine } from '../types';
+import { SpreadsheetView } from './SpreadsheetView';
 import { store } from '../services/store';
 import { dayKey, dm, fmtT } from '../utils';
 
@@ -7,6 +8,9 @@ interface DailyReportViewProps {
   currentCode: string;
   reports: Report[];
   customers: Customer[];
+  sheet: SheetCustomer[];
+  /** Máy mà quản lý gán cho nhân viên này. */
+  machine: Machine;
   onToast: (msg: string) => void;
 }
 
@@ -14,8 +18,11 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   currentCode,
   reports,
   customers,
+  sheet,
+  machine,
   onToast,
 }) => {
+  const isM2 = machine === '2';
   const [selectedDate, setSelectedDate] = useState(() => dayKey(Date.now()));
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -53,7 +60,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     const initial: Record<string, string> = {};
     const newTouched: Record<string, boolean> = {};
 
-    R_FIELDS.forEach(([k, , , isChip]) => {
+    M1_FIELDS.forEach(([k, , , isChip]) => {
       if (isChip) {
         initial[k] = currentReport ? currentReport.tinhTrang || '' : '';
       } else {
@@ -106,14 +113,53 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     setIsDirty(true);
   };
 
-  const reportText = useMemo(() => {
-    const lines = [`NV ${currentCode} - NGÀY ${dm(selectedDate)}`, ''];
-    R_FIELDS.forEach(([k, label, , isChip]) => {
-      const v = isChip ? formData['tinhTrang'] : formData[k]?.trim();
-      lines.push(`- ${label} : ${v || (isChip ? '' : '0')}`);
+  // Máy 2: Danh sách khách hàng hiện tại của nhân viên, theo thứ tự nhập.
+  const liveDs = useMemo<DsItem[]>(() => {
+    return sheet
+      .filter(r => r.code === currentCode && r.name?.trim())
+      .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+      .map(r => ({
+        name: r.name!.trim(),
+        ...(r.stage ? { stage: r.stage } : {}),
+        ...(r.rank ? { rank: r.rank } : {}),
+      }));
+  }, [sheet, currentCode]);
+
+  // Ngày cũ đã lưu thì hiện đúng danh sách lúc lưu, còn lại dùng bảng hiện tại.
+  const isToday = selectedDate === dayKey(Date.now());
+  const dsList = !isToday && currentReport?.dsKhach ? currentReport.dsKhach : liveDs;
+
+  const dsStageCounts = useMemo(() => {
+    const counts: [string, number][] = [];
+    dsList.forEach(d => {
+      const k = d.stage || 'Chưa chọn tình trạng';
+      const hit = counts.find(c => c[0] === k);
+      if (hit) hit[1]++;
+      else counts.push([k, 1]);
     });
+    return counts;
+  }, [dsList]);
+
+  const reportText = useMemo(() => {
+    const lines = [`NV ${currentCode} - MÁY ${machine} - NGÀY ${dm(selectedDate)}`, ''];
+    if (isM2) {
+      lines.push(`- Tổng khách : ${dsList.length}`);
+      dsStageCounts.forEach(([k, n]) => lines.push(`- ${k} : ${n}`));
+      if (dsList.length) {
+        lines.push('', 'Danh sách khách hàng:');
+        dsList.forEach((d, i) => {
+          const extra = [d.stage, d.rank].filter(Boolean).join(', ');
+          lines.push(`${i + 1}. ${d.name}${extra ? ` - ${extra}` : ''}`);
+        });
+      }
+    } else {
+      M1_FIELDS.forEach(([k, label, , isChip]) => {
+        const v = isChip ? formData['tinhTrang'] : formData[k]?.trim();
+        lines.push(`- ${label} : ${v || (isChip ? '' : '0')}`);
+      });
+    }
     return lines.join('\n');
-  }, [currentCode, selectedDate, formData]);
+  }, [currentCode, machine, isM2, selectedDate, formData, dsList, dsStageCounts]);
 
   const handleSave = async () => {
     if (!selectedDate) {
@@ -122,12 +168,18 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     }
 
     const obj: any = {
+      // Giữ lại các số cũ (chơi giúp, vào tiền, chết...) của báo cáo đã lưu trước khi có Máy 1/Máy 2.
+      ...(currentReport ? (({ id, ...rest }) => rest)(currentReport) : {}),
       code: currentCode,
       date: selectedDate,
+      may: machine,
       updatedAt: Date.now(),
     };
 
-    for (const [k, label, , isChip] of R_FIELDS) {
+    if (isM2) {
+      obj.dsKhach = liveDs;
+      obj.dangNoi = liveDs.length;
+    } else for (const [k, label, , isChip] of M1_FIELDS) {
       if (isChip) {
         obj[k] = formData['tinhTrang'] || '';
         continue;
@@ -179,11 +231,21 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       .slice(0, 31);
   }, [reports, currentCode]);
 
+  const saveRow = (
+    <div className="row-e">
+      <button type="button" className="btn" disabled={isSaving} onClick={handleSave}>
+        Lưu báo cáo
+      </button>
+    </div>
+  );
+
   return (
     <div>
       <div className="head row-sb">
         <div>
-          <h1>NGÀY {dm(selectedDate)}</h1>
+          <h1>
+            NGÀY {dm(selectedDate)} <span className={`mtag ${isM2 ? 'm2' : ''}`}>Máy {machine}</span>
+          </h1>
           <p className="sub">
             {currentReport
               ? `Đã lưu lúc ${fmtT(currentReport.updatedAt)}${isDirty ? '. Có thay đổi chưa lưu' : ''}.`
@@ -203,9 +265,10 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
         </label>
       </div>
 
+{!isM2 && (
       <div className="panel">
         <div className="rform">
-          {R_FIELDS.map(([k, label, colorVar, isChip]) => {
+          {M1_FIELDS.map(([k, label, colorVar, isChip]) => {
             if (isChip) {
               return (
                 <div key={k} className="rrow chiprow">
@@ -249,13 +312,30 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
             );
           })}
         </div>
-
-        <div className="row-e">
-          <button type="button" className="btn" disabled={isSaving} onClick={handleSave}>
-            Lưu báo cáo
-          </button>
-        </div>
+        {saveRow}
       </div>
+)}
+
+      {isM2 && (
+        <div className="panel">
+          <div className="mhead">
+            <h2>Danh sách khách hàng</h2>
+            <span className="sub">{dsList.length} khách</span>
+          </div>
+          {dsStageCounts.length > 0 && (
+            <div className="dsstat">
+              {dsStageCounts.map(([k, n]) => (
+                <span key={k}>
+                  {k} <b>{n}</b>
+                </span>
+              ))}
+            </div>
+          )}
+          <SpreadsheetView embedded currentCode={currentCode} sheetData={sheet} customers={customers} onToast={onToast} />
+          <p className="sub">Bấm “Lưu báo cáo” để chốt danh sách khách hàng của ngày {dm(selectedDate)}.</p>
+          {saveRow}
+        </div>
+      )}
 
       <div className="panel">
         <div className="row-sb">
@@ -291,7 +371,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
               >
                 <b className={r.date === selectedDate ? 'on' : ''}>Ngày {dm(r.date)}</b>
                 <span>
-                  Cào {r.scraped}, vào tiền {r.vaoTien}, còn lại {r.conLai}
+                  {r.may === '2'
+                    ? `${r.dsKhach ? r.dsKhach.length : r.dangNoi} khách trong danh sách`
+                    : `Cào ${r.scraped}, khách mới ${r.moi}, còn lại ${r.conLai}`}
                 </span>
               </button>
             ))
