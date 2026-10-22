@@ -33,6 +33,8 @@ export interface Report {
   tongThang: number;
   /** Máy 2: danh sách khách đang nói chuyện. `dangNoi` lưu số dòng của danh sách này. */
   noiChuyen?: TalkItem[];
+  /** Máy mà nhân viên báo cáo lúc lưu. */
+  may?: Machine;
   updatedAt: number;
 }
 
@@ -69,6 +71,10 @@ export interface PhotoItem {
 export const DEFAULT_CODES = ['7', '6', '8', '1', '503', '11', '4'];
 export const ADMIN_KEY = '__quanly__';
 export const SKEY = 'sokhach-codes';
+export const MKEY = 'sokhach-machines';
+
+/** Bộ phận báo cáo của nhân viên: Máy 1 (số liệu data) hoặc Máy 2 (khách đang nói chuyện). */
+export type Machine = '1' | '2';
 export const CKEY = 'sokhach-code';
 export const LKEY = 'sokhach-local-v2';
 

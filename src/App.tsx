@@ -117,6 +117,7 @@ export const App: React.FC = () => {
       <>
         <AdminView
           codes={storeState.codes}
+          machines={storeState.machines}
           customers={storeState.customers}
           reports={storeState.reports}
           sheet={storeState.sheet}
@@ -219,6 +220,7 @@ export const App: React.FC = () => {
             currentCode={currentCode!}
             reports={storeState.reports}
             customers={storeState.customers}
+            machine={storeState.machines[currentCode!] || '1'}
             onToast={showToast}
           />
         )}

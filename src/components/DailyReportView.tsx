@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Customer, Report, M1_FIELDS, DSTAT, TalkItem } from '../types';
+import { Customer, Report, M1_FIELDS, DSTAT, TalkItem, Machine } from '../types';
 import { store } from '../services/store';
 import { dayKey, dm, fmtT } from '../utils';
 
@@ -7,6 +7,8 @@ interface DailyReportViewProps {
   currentCode: string;
   reports: Report[];
   customers: Customer[];
+  /** Máy mà quản lý gán cho nhân viên này. */
+  machine: Machine;
   onToast: (msg: string) => void;
 }
 
@@ -14,8 +16,10 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   currentCode,
   reports,
   customers,
+  machine,
   onToast,
 }) => {
+  const isM2 = machine === '2';
   const [selectedDate, setSelectedDate] = useState(() => dayKey(Date.now()));
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -151,18 +155,21 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   };
 
   const reportText = useMemo(() => {
-    const lines = [`NV ${currentCode} - NGÀY ${dm(selectedDate)}`, '', 'MÁY 1'];
-    M1_FIELDS.forEach(([k, label, , isChip]) => {
-      const v = isChip ? formData['tinhTrang'] : formData[k]?.trim();
-      lines.push(`- ${label} : ${v || (isChip ? '' : '0')}`);
-    });
-    lines.push('', `MÁY 2`, `- Khách đang nói chuyện : ${talks.length}`);
-    talks.forEach((t, i) => {
-      const note = t.note?.trim();
-      lines.push(`  ${i + 1}. ${t.name}${note ? ` - ${note}` : ''}`);
-    });
+    const lines = [`NV ${currentCode} - MÁY ${machine} - NGÀY ${dm(selectedDate)}`, ''];
+    if (isM2) {
+      lines.push(`- Khách đang nói chuyện : ${talks.length}`);
+      talks.forEach((t, i) => {
+        const note = t.note?.trim();
+        lines.push(`  ${i + 1}. ${t.name}${note ? ` - ${note}` : ''}`);
+      });
+    } else {
+      M1_FIELDS.forEach(([k, label, , isChip]) => {
+        const v = isChip ? formData['tinhTrang'] : formData[k]?.trim();
+        lines.push(`- ${label} : ${v || (isChip ? '' : '0')}`);
+      });
+    }
     return lines.join('\n');
-  }, [currentCode, selectedDate, formData, talks]);
+  }, [currentCode, machine, isM2, selectedDate, formData, talks]);
 
   const handleSave = async () => {
     if (!selectedDate) {
@@ -175,10 +182,24 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       ...(currentReport ? (({ id, ...rest }) => rest)(currentReport) : {}),
       code: currentCode,
       date: selectedDate,
+      may: machine,
       updatedAt: Date.now(),
     };
 
-    for (const [k, label, , isChip] of M1_FIELDS) {
+    if (isM2) {
+      const pendingName = talkName.trim();
+      const list = talks
+        .map(t => ({ name: t.name.trim(), ...(t.note?.trim() ? { note: t.note.trim() } : {}) }))
+        .filter(t => t.name);
+      if (pendingName && !list.some(t => t.name.toLowerCase() === pendingName.toLowerCase())) {
+        list.push({ name: pendingName, ...(talkNote.trim() ? { note: talkNote.trim() } : {}) });
+        setTalks(list);
+        setTalkName('');
+        setTalkNote('');
+      }
+      obj.noiChuyen = list;
+      obj.dangNoi = list.length;
+    } else for (const [k, label, , isChip] of M1_FIELDS) {
       if (isChip) {
         obj[k] = formData['tinhTrang'] || '';
         continue;
@@ -190,19 +211,6 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       }
       obj[k] = raw ? parseInt(raw, 10) : 0;
     }
-
-    const pendingName = talkName.trim();
-    const list = talks
-      .map(t => ({ name: t.name.trim(), ...(t.note?.trim() ? { note: t.note.trim() } : {}) }))
-      .filter(t => t.name);
-    if (pendingName && !list.some(t => t.name.toLowerCase() === pendingName.toLowerCase())) {
-      list.push({ name: pendingName, ...(talkNote.trim() ? { note: talkNote.trim() } : {}) });
-      setTalks(list);
-      setTalkName('');
-      setTalkNote('');
-    }
-    obj.noiChuyen = list;
-    obj.dangNoi = list.length;
 
     setIsSaving(true);
     try {
@@ -243,11 +251,21 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       .slice(0, 31);
   }, [reports, currentCode]);
 
+  const saveRow = (
+    <div className="row-e">
+      <button type="button" className="btn" disabled={isSaving} onClick={handleSave}>
+        Lưu báo cáo
+      </button>
+    </div>
+  );
+
   return (
     <div>
       <div className="head row-sb">
         <div>
-          <h1>NGÀY {dm(selectedDate)}</h1>
+          <h1>
+            NGÀY {dm(selectedDate)} <span className={`mtag ${isM2 ? 'm2' : ''}`}>Máy {machine}</span>
+          </h1>
           <p className="sub">
             {currentReport
               ? `Đã lưu lúc ${fmtT(currentReport.updatedAt)}${isDirty ? '. Có thay đổi chưa lưu' : ''}.`
@@ -267,11 +285,8 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
         </label>
       </div>
 
+{!isM2 && (
       <div className="panel">
-        <div className="mhead">
-          <span className="mtag">Máy 1</span>
-          <h2>Số liệu data</h2>
-        </div>
         <div className="rform">
           {M1_FIELDS.map(([k, label, colorVar, isChip]) => {
             if (isChip) {
@@ -317,11 +332,13 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
             );
           })}
         </div>
+        {saveRow}
       </div>
+)}
 
+      {isM2 && (
       <div className="panel">
         <div className="mhead">
-          <span className="mtag m2">Máy 2</span>
           <h2>Khách đang nói chuyện</h2>
           <span className="sub">{talks.length} khách</span>
         </div>
@@ -384,12 +401,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
           </datalist>
         </div>
 
-        <div className="row-e">
-          <button type="button" className="btn" disabled={isSaving} onClick={handleSave}>
-            Lưu báo cáo
-          </button>
-        </div>
+        {saveRow}
       </div>
+      )}
 
       <div className="panel">
         <div className="row-sb">
@@ -425,7 +439,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
               >
                 <b className={r.date === selectedDate ? 'on' : ''}>Ngày {dm(r.date)}</b>
                 <span>
-                  Cào {r.scraped}, còn lại {r.conLai}, đang nói chuyện {r.noiChuyen ? r.noiChuyen.length : r.dangNoi}
+                  {r.may === '2'
+                    ? `Đang nói chuyện ${r.noiChuyen ? r.noiChuyen.length : r.dangNoi}`
+                    : `Cào ${r.scraped}, khách mới ${r.moi}, còn lại ${r.conLai}`}
                 </span>
               </button>
             ))
