@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Customer, Report, R_FIELDS, DSTAT } from '../types';
+import { Customer, Report, M1_FIELDS, DSTAT, TalkItem } from '../types';
 import { store } from '../services/store';
 import { dayKey, dm, fmtT } from '../utils';
 
@@ -21,6 +21,9 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [talks, setTalks] = useState<TalkItem[]>([]);
+  const [talkName, setTalkName] = useState('');
+  const [talkNote, setTalkNote] = useState('');
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto count for 'moi' on selectedDate
@@ -53,7 +56,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     const initial: Record<string, string> = {};
     const newTouched: Record<string, boolean> = {};
 
-    R_FIELDS.forEach(([k, , , isChip]) => {
+    M1_FIELDS.forEach(([k, , , isChip]) => {
       if (isChip) {
         initial[k] = currentReport ? currentReport.tinhTrang || '' : '';
       } else {
@@ -71,6 +74,12 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
         newTouched[k] = !!currentReport;
       }
     });
+
+    // Danh sách đang nói chuyện thường kéo dài qua nhiều ngày nên ngày mới lấy lại từ báo cáo trước.
+    const src = currentReport || prevReport;
+    setTalks(src?.noiChuyen ? src.noiChuyen.map(t => ({ ...t })) : []);
+    setTalkName('');
+    setTalkNote('');
 
     setFormData(initial);
     setTouched(newTouched);
@@ -106,14 +115,54 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     setIsDirty(true);
   };
 
+  // Gợi ý tên từ khách mà nhân viên đã đăng.
+  const nameSuggestions = useMemo(() => {
+    const set = new Set<string>();
+    customers.forEach(c => {
+      if (c.code === currentCode && c.name) set.add(c.name);
+    });
+    return [...set];
+  }, [customers, currentCode]);
+
+  const addTalk = () => {
+    const name = talkName.trim();
+    if (!name) {
+      onToast('Nhập tên khách');
+      return;
+    }
+    if (talks.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+      onToast(`${name} đã có trong danh sách`);
+      return;
+    }
+    setTalks(prev => [...prev, { name, note: talkNote.trim() || undefined }]);
+    setTalkName('');
+    setTalkNote('');
+    setIsDirty(true);
+  };
+
+  const updateTalkNote = (idx: number, note: string) => {
+    setTalks(prev => prev.map((t, i) => (i === idx ? { ...t, note } : t)));
+    setIsDirty(true);
+  };
+
+  const removeTalk = (idx: number) => {
+    setTalks(prev => prev.filter((_, i) => i !== idx));
+    setIsDirty(true);
+  };
+
   const reportText = useMemo(() => {
-    const lines = [`NV ${currentCode} - NGÀY ${dm(selectedDate)}`, ''];
-    R_FIELDS.forEach(([k, label, , isChip]) => {
+    const lines = [`NV ${currentCode} - NGÀY ${dm(selectedDate)}`, '', 'MÁY 1'];
+    M1_FIELDS.forEach(([k, label, , isChip]) => {
       const v = isChip ? formData['tinhTrang'] : formData[k]?.trim();
       lines.push(`- ${label} : ${v || (isChip ? '' : '0')}`);
     });
+    lines.push('', `MÁY 2`, `- Khách đang nói chuyện : ${talks.length}`);
+    talks.forEach((t, i) => {
+      const note = t.note?.trim();
+      lines.push(`  ${i + 1}. ${t.name}${note ? ` - ${note}` : ''}`);
+    });
     return lines.join('\n');
-  }, [currentCode, selectedDate, formData]);
+  }, [currentCode, selectedDate, formData, talks]);
 
   const handleSave = async () => {
     if (!selectedDate) {
@@ -122,12 +171,14 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
     }
 
     const obj: any = {
+      // Giữ lại các số cũ (chơi giúp, vào tiền, chết...) của báo cáo đã lưu trước khi có Máy 1/Máy 2.
+      ...(currentReport ? (({ id, ...rest }) => rest)(currentReport) : {}),
       code: currentCode,
       date: selectedDate,
       updatedAt: Date.now(),
     };
 
-    for (const [k, label, , isChip] of R_FIELDS) {
+    for (const [k, label, , isChip] of M1_FIELDS) {
       if (isChip) {
         obj[k] = formData['tinhTrang'] || '';
         continue;
@@ -139,6 +190,19 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       }
       obj[k] = raw ? parseInt(raw, 10) : 0;
     }
+
+    const pendingName = talkName.trim();
+    const list = talks
+      .map(t => ({ name: t.name.trim(), ...(t.note?.trim() ? { note: t.note.trim() } : {}) }))
+      .filter(t => t.name);
+    if (pendingName && !list.some(t => t.name.toLowerCase() === pendingName.toLowerCase())) {
+      list.push({ name: pendingName, ...(talkNote.trim() ? { note: talkNote.trim() } : {}) });
+      setTalks(list);
+      setTalkName('');
+      setTalkNote('');
+    }
+    obj.noiChuyen = list;
+    obj.dangNoi = list.length;
 
     setIsSaving(true);
     try {
@@ -204,8 +268,12 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
       </div>
 
       <div className="panel">
+        <div className="mhead">
+          <span className="mtag">Máy 1</span>
+          <h2>Số liệu data</h2>
+        </div>
         <div className="rform">
-          {R_FIELDS.map(([k, label, colorVar, isChip]) => {
+          {M1_FIELDS.map(([k, label, colorVar, isChip]) => {
             if (isChip) {
               return (
                 <div key={k} className="rrow chiprow">
@@ -249,6 +317,72 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
             );
           })}
         </div>
+      </div>
+
+      <div className="panel">
+        <div className="mhead">
+          <span className="mtag m2">Máy 2</span>
+          <h2>Khách đang nói chuyện</h2>
+          <span className="sub">{talks.length} khách</span>
+        </div>
+
+        {talks.length === 0 ? (
+          <div className="empty">Chưa có khách nào. Thêm tên khách đang nói chuyện ở dưới.</div>
+        ) : (
+          <ol className="talks">
+            {talks.map((t, i) => (
+              <li key={t.name}>
+                <span className="tn">{i + 1}</span>
+                <b>{t.name}</b>
+                <input
+                  placeholder="Ghi chú (không bắt buộc)"
+                  aria-label={`Ghi chú cho ${t.name}`}
+                  value={t.note || ''}
+                  onChange={e => updateTalkNote(i, e.target.value)}
+                />
+                <button type="button" className="rm" aria-label={`Bỏ ${t.name}`} onClick={() => removeTalk(i)}>
+                  ×
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        <div className="talkadd">
+          <input
+            list="talk-names"
+            placeholder="Tên khách"
+            aria-label="Tên khách đang nói chuyện"
+            value={talkName}
+            onChange={e => setTalkName(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addTalk();
+              }
+            }}
+          />
+          <input
+            placeholder="Ghi chú (không bắt buộc)"
+            aria-label="Ghi chú"
+            value={talkNote}
+            onChange={e => setTalkNote(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addTalk();
+              }
+            }}
+          />
+          <button type="button" className="btn ghost" onClick={addTalk}>
+            Thêm
+          </button>
+          <datalist id="talk-names">
+            {nameSuggestions.map(n => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        </div>
 
         <div className="row-e">
           <button type="button" className="btn" disabled={isSaving} onClick={handleSave}>
@@ -291,7 +425,7 @@ export const DailyReportView: React.FC<DailyReportViewProps> = ({
               >
                 <b className={r.date === selectedDate ? 'on' : ''}>Ngày {dm(r.date)}</b>
                 <span>
-                  Cào {r.scraped}, vào tiền {r.vaoTien}, còn lại {r.conLai}
+                  Cào {r.scraped}, còn lại {r.conLai}, đang nói chuyện {r.noiChuyen ? r.noiChuyen.length : r.dangNoi}
                 </span>
               </button>
             ))

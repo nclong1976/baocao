@@ -31,7 +31,14 @@ export interface Report {
   conLai: number;
   tinhTrang: string;
   tongThang: number;
+  /** Máy 2: danh sách khách đang nói chuyện. `dangNoi` lưu số dòng của danh sách này. */
+  noiChuyen?: TalkItem[];
   updatedAt: number;
+}
+
+export interface TalkItem {
+  name: string;
+  note?: string;
 }
 
 export interface SheetCustomer {
@@ -87,6 +94,16 @@ export const R_FIELDS: [string, string, string?, boolean?][] = [
   ['choiGiup', 'Khách chơi giúp', 'choi_giup'],
   ['vaoTien', 'Khách vào tiền', 'vao_tien'],
   ['chet', 'Khách chết', 'chet'],
+  ['tongData', 'Tổng data nhận'],
+  ['conLai', 'Số lượng còn lại'],
+  ['tinhTrang', 'Tình trạng data', '', true],
+  ['tongThang', 'Tổng khách trong tháng'],
+];
+
+/** Các trường của Máy 1 trong báo cáo ngày. */
+export const M1_FIELDS: [string, string, string?, boolean?][] = [
+  ['scraped', 'Số lượng cào hôm nay'],
+  ['moi', 'Khách mới', 'moi'],
   ['tongData', 'Tổng data nhận'],
   ['conLai', 'Số lượng còn lại'],
   ['tinhTrang', 'Tình trạng data', '', true],

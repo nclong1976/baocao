@@ -386,7 +386,7 @@ class AppStore {
       this.pushActivity({
         code,
         kind: 'report',
-        text: `${who} ${verb} báo cáo ngày ${dm(data?.date || '')}: cào ${data?.scraped ?? 0}, vào tiền ${data?.vaoTien ?? 0}`,
+        text: `${who} ${verb} báo cáo ngày ${dm(data?.date || '')}: cào ${data?.scraped ?? 0}, đang nói chuyện ${data?.dangNoi ?? 0}`,
       });
     } else if (col === 'customers') {
       const verb = prev ? 'sửa thông tin khách' : 'đăng khách mới';
